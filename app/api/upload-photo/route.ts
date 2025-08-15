@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { put } from "@vercel/blob"
 import { writeFile, readFile } from "fs/promises"
 import { join } from "path"
+import { crypto } from "crypto"
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,6 +26,7 @@ export async function POST(request: NextRequest) {
     // Upload to Vercel Blob
     const blob = await put(file.name, file, {
       access: "public",
+      addRandomSuffix: true,
     })
 
     // Save photo metadata
