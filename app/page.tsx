@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react"
 import { SpotifyWidget } from "@/components/spotify-widget"
 import { Navigation } from "@/components/navigation"
+import { PhotoUpload } from "@/components/photo-upload"
+import { PhotoGallery } from "@/components/photo-gallery"
 
 export default function Portfolio() {
   const [activeTab, setActiveTab] = useState("portfolio")
@@ -81,19 +83,11 @@ export default function Portfolio() {
       case "photos":
         return (
           <section className="px-8 py-20 max-w-7xl mx-auto">
-            <h2 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-12">Photos</h2>
-            <div className="grid md:grid-cols-3 gap-6">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div
-                  key={i}
-                  className="aspect-square bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden hover:scale-105 transition-transform duration-300 cursor-pointer"
-                >
-                  <div className="w-full h-full bg-gradient-to-br from-zinc-800 to-zinc-900 flex items-center justify-center">
-                    <span className="text-zinc-500 font-inter text-sm">Photo {i}</span>
-                  </div>
-                </div>
-              ))}
+            <div className="flex items-center justify-between mb-12">
+              <h2 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500">Photos</h2>
+              <PhotoUpload />
             </div>
+            <PhotoGallery />
           </section>
         )
 
