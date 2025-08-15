@@ -106,7 +106,7 @@ export default function Portfolio() {
                 <div className="lg:col-span-2 space-y-16">
                   <div>
                     <h1 className="font-inter font-light text-6xl md:text-8xl lg:text-9xl text-white mb-8 leading-[0.9] tracking-tight">
-                      Hey, I'm aarush
+                      hey, i'm aarush
                     </h1>
                     <p className="font-crimson-text text-xl md:text-2xl text-zinc-300 leading-relaxed max-w-3xl">
                       I am passionate about artificial intelligence and machine learning, with a keen interest in
