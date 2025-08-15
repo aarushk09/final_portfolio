@@ -3,13 +3,21 @@
 import type React from "react"
 
 import { useState, useRef } from "react"
-import { Upload, X, Check, Loader2 } from "lucide-react"
+import { Upload, X, Check, Loader2, AlertCircle } from "lucide-react"
+
+interface UploadResult {
+  file: File
+  success: boolean
+  url?: string
+  error?: string
+}
 
 export function PhotoUpload() {
   const [isOpen, setIsOpen] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [uploadedFiles, setUploadedFiles] = useState<string[]>([])
+  const [uploadResults, setUploadResults] = useState<UploadResult[]>([])
+  const [currentUpload, setCurrentUpload] = useState<string>("")
   const [error, setError] = useState<string>("")
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -33,10 +41,15 @@ export function PhotoUpload() {
   const uploadFiles = async (files: File[]) => {
     setUploading(true)
     setError("")
-    const uploaded: string[] = []
+    setUploadResults([])
 
-    try {
-      for (const file of files) {
+    const results: UploadResult[] = []
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+      setCurrentUpload(`Uploading ${file.name} (${i + 1}/${files.length})`)
+
+      try {
         const formData = new FormData()
         formData.append("file", file)
 
@@ -48,27 +61,49 @@ export function PhotoUpload() {
         const data = await response.json()
 
         if (response.ok) {
-          uploaded.push(data.url)
+          results.push({
+            file,
+            success: true,
+            url: data.url,
+          })
         } else {
-          throw new Error(data.error || "Upload failed")
+          results.push({
+            file,
+            success: false,
+            error: data.error || "Upload failed",
+          })
         }
+      } catch (error) {
+        results.push({
+          file,
+          success: false,
+          error: error instanceof Error ? error.message : "Upload failed",
+        })
       }
 
-      setUploadedFiles(uploaded)
+      // Small delay to prevent overwhelming the server
+      if (i < files.length - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 500))
+      }
+    }
 
-      // Close modal after successful upload
+    setUploadResults(results)
+    setUploading(false)
+    setCurrentUpload("")
+
+    // Auto-close and refresh if all uploads were successful
+    const successfulUploads = results.filter((r) => r.success)
+    if (successfulUploads.length === results.length && results.length > 0) {
       setTimeout(() => {
         setIsOpen(false)
-        setUploadedFiles([])
-        // Trigger a page refresh to show new photos
+        setUploadResults([])
         window.location.reload()
       }, 2000)
-    } catch (error) {
-      console.error("Upload failed:", error)
-      setError(error instanceof Error ? error.message : "Upload failed")
-    } finally {
-      setUploading(false)
     }
+  }
+
+  const createImagePreview = (file: File): string => {
+    return URL.createObjectURL(file)
   }
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -90,9 +125,20 @@ export function PhotoUpload() {
   const resetModal = () => {
     setIsOpen(false)
     setError("")
-    setUploadedFiles([])
+    setUploadResults([])
     setUploading(false)
+    setCurrentUpload("")
   }
+
+  const retryFailedUploads = () => {
+    const failedFiles = uploadResults.filter((r) => !r.success).map((r) => r.file)
+    if (failedFiles.length > 0) {
+      uploadFiles(failedFiles)
+    }
+  }
+
+  const successfulUploads = uploadResults.filter((r) => r.success)
+  const failedUploads = uploadResults.filter((r) => !r.success)
 
   return (
     <>
@@ -106,7 +152,7 @@ export function PhotoUpload() {
 
       {isOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 w-full max-w-md">
+          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h3 className="font-inter text-xl text-white">Upload Photos</h3>
               <button onClick={resetModal} className="p-2 hover:bg-zinc-800 rounded-lg transition-colors">
@@ -120,37 +166,100 @@ export function PhotoUpload() {
               </div>
             )}
 
-            <div
-              className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 ${
-                isDragging ? "border-green-500 bg-green-500/10" : "border-zinc-600 hover:border-zinc-500"
-              }`}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-            >
-              {uploading ? (
-                <div className="flex flex-col items-center gap-4">
-                  <Loader2 className="w-8 h-8 text-green-500 animate-spin" />
-                  <p className="text-zinc-300 font-inter">Uploading photos...</p>
-                </div>
-              ) : uploadedFiles.length > 0 ? (
-                <div className="flex flex-col items-center gap-4">
-                  <Check className="w-8 h-8 text-green-500" />
-                  <p className="text-green-400 font-inter">
-                    {uploadedFiles.length} photo{uploadedFiles.length > 1 ? "s" : ""} uploaded successfully!
-                  </p>
-                  <p className="text-zinc-400 font-inter text-sm">Refreshing page...</p>
-                </div>
-              ) : (
-                <>
-                  <Upload className="w-12 h-12 text-zinc-400 mx-auto mb-4" />
-                  <p className="text-zinc-300 font-inter mb-2">Drag and drop photos here, or click to select</p>
-                  <p className="text-zinc-500 font-crimson-text text-sm">Supports JPG, PNG, WebP up to 10MB each</p>
-                </>
-              )}
-            </div>
+            {/* Upload Area */}
+            {!uploading && uploadResults.length === 0 && (
+              <div
+                className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 ${
+                  isDragging ? "border-green-500 bg-green-500/10" : "border-zinc-600 hover:border-zinc-500"
+                }`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                <Upload className="w-12 h-12 text-zinc-400 mx-auto mb-4" />
+                <p className="text-zinc-300 font-inter mb-2">Drag and drop photos here, or click to select</p>
+                <p className="text-zinc-500 font-crimson-text text-sm">Supports JPG, PNG, WebP up to 10MB each</p>
+              </div>
+            )}
 
-            {!uploading && uploadedFiles.length === 0 && (
+            {/* Upload Progress */}
+            {uploading && (
+              <div className="flex flex-col items-center gap-4 py-8">
+                <Loader2 className="w-8 h-8 text-green-500 animate-spin" />
+                <p className="text-zinc-300 font-inter">{currentUpload}</p>
+              </div>
+            )}
+
+            {/* Upload Results */}
+            {uploadResults.length > 0 && !uploading && (
+              <div className="space-y-6">
+                {/* Success Summary */}
+                {successfulUploads.length > 0 && (
+                  <div className="bg-green-900/20 border border-green-700 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Check className="w-5 h-5 text-green-500" />
+                      <h4 className="font-inter text-green-400 font-medium">
+                        {successfulUploads.length} photo{successfulUploads.length > 1 ? "s" : ""} uploaded successfully!
+                      </h4>
+                    </div>
+                  </div>
+                )}
+
+                {/* Failed Uploads */}
+                {failedUploads.length > 0 && (
+                  <div className="bg-red-900/20 border border-red-700 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-4">
+                      <AlertCircle className="w-5 h-5 text-red-500" />
+                      <h4 className="font-inter text-red-400 font-medium">
+                        {failedUploads.length} photo{failedUploads.length > 1 ? "s" : ""} failed to upload:
+                      </h4>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {failedUploads.map((result, index) => (
+                        <div key={index} className="bg-zinc-800 rounded-lg p-3">
+                          <div className="aspect-square bg-zinc-700 rounded-lg mb-2 overflow-hidden">
+                            <img
+                              src={createImagePreview(result.file) || "/placeholder.svg"}
+                              alt={result.file.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <p className="text-zinc-300 font-inter text-xs truncate mb-1">{result.file.name}</p>
+                          <p className="text-red-400 font-inter text-xs">{result.error}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={retryFailedUploads}
+                      className="mt-4 w-full bg-red-600 hover:bg-red-700 text-white font-inter py-2 px-4 rounded-lg transition-colors"
+                    >
+                      Retry Failed Uploads
+                    </button>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex gap-3">
+                  {successfulUploads.length > 0 && failedUploads.length === 0 && (
+                    <div className="flex-1 text-center">
+                      <p className="text-green-400 font-inter text-sm mb-2">All photos uploaded successfully!</p>
+                      <p className="text-zinc-400 font-inter text-xs">Refreshing page...</p>
+                    </div>
+                  )}
+                  <button
+                    onClick={resetModal}
+                    className="flex-1 bg-zinc-700 hover:bg-zinc-600 text-white font-inter py-3 px-4 rounded-lg transition-colors"
+                  >
+                    {successfulUploads.length > 0 ? "Done" : "Close"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Initial Buttons */}
+            {!uploading && uploadResults.length === 0 && (
               <div className="mt-6 flex gap-3">
                 <button
                   onClick={() => fileInputRef.current?.click()}
