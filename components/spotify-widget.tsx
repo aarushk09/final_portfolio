@@ -146,7 +146,7 @@ export function SpotifyWidget({ isVisible, inSidebar = false }: SpotifyWidgetPro
           className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl px-4 py-2 flex items-center gap-2 shadow-lg hover:bg-zinc-800/80 transition-all duration-300"
         >
           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-          <span className="text-green-400 font-inter text-xs uppercase tracking-wide">now playing</span>
+          <span className="text-green-400 font-inter text-xs uppercase tracking-wide">aarush is locked in</span>
         </button>
       </div>
     )
@@ -251,7 +251,7 @@ export function SpotifyWidget({ isVisible, inSidebar = false }: SpotifyWidgetPro
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
                   <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                  <span className="text-green-400 font-inter text-xs uppercase tracking-wide">now playing</span>
+                  <span className="text-green-400 font-inter text-xs uppercase tracking-wide">aarush is locked in</span>
                 </div>
 
                 <div
