@@ -1,6 +1,31 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { put } from "@vercel/blob"
 
+// Helper function to resize image
+async function resizeImage(file: File, maxWidth: number, quality = 0.8): Promise<Blob> {
+  return new Promise((resolve) => {
+    const canvas = document.createElement("canvas")
+    const ctx = canvas.getContext("2d")!
+    const img = new Image()
+
+    img.onload = () => {
+      // Calculate new dimensions
+      const ratio = Math.min(maxWidth / img.width, maxWidth / img.height)
+      const newWidth = img.width * ratio
+      const newHeight = img.height * ratio
+
+      canvas.width = newWidth
+      canvas.height = newHeight
+
+      // Draw and compress
+      ctx.drawImage(img, 0, 0, newWidth, newHeight)
+      canvas.toBlob(resolve, "image/jpeg", quality)
+    }
+
+    img.src = URL.createObjectURL(file)
+  })
+}
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
@@ -39,20 +64,25 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create a clean, safe filename
-    const safeFilename = `photo_${timestamp}_${randomId}.${extension}`
+    // Create filenames
+    const originalFilename = `photo_${timestamp}_${randomId}.${extension}`
+    const thumbnailFilename = `thumb_${timestamp}_${randomId}.jpg`
 
-    console.log("Uploading file:", safeFilename, "Type:", file.type, "Size:", file.size)
+    console.log("Uploading files:", { originalFilename, thumbnailFilename })
 
-    // Upload to Vercel Blob
-    const blob = await put(safeFilename, file, {
+    // Upload original image
+    const originalBlob = await put(originalFilename, file, {
       access: "public",
     })
 
+    // Create and upload thumbnail (this will be done on client side for now)
+    // For server-side image processing, we'd need a different approach
+
     return NextResponse.json({
       success: true,
-      url: blob.url,
-      filename: safeFilename,
+      url: originalBlob.url,
+      thumbnailUrl: originalBlob.url, // For now, same as original
+      filename: originalFilename,
     })
   } catch (error) {
     console.error("Upload error:", error)

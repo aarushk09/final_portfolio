@@ -5,11 +5,15 @@ import { SpotifyWidget } from "@/components/spotify-widget"
 import { Navigation } from "@/components/navigation"
 import { PhotoUpload } from "@/components/photo-upload"
 import { PhotoGallery } from "@/components/photo-gallery"
+import { usePhotoPreloader } from "@/hooks/usePhotoPreloader"
 
 export default function Portfolio() {
   const [activeTab, setActiveTab] = useState("portfolio")
   const [showSpotify, setShowSpotify] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  // Start preloading photos immediately
+  const { photos, preloadedUrls, isPreloading, preloadProgress, startPreloading } = usePhotoPreloader()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -21,6 +25,16 @@ export default function Portfolio() {
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
+
+  // Start preloading photos as soon as the page loads
+  useEffect(() => {
+    // Small delay to let the page load first, then start preloading
+    const timer = setTimeout(() => {
+      startPreloading()
+    }, 1000) // 1 second delay
+
+    return () => clearTimeout(timer)
+  }, [startPreloading])
 
   const renderContent = () => {
     switch (activeTab) {
@@ -85,9 +99,18 @@ export default function Portfolio() {
           <section className="px-8 py-20 max-w-7xl mx-auto">
             <div className="flex items-center justify-between mb-12">
               <h2 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500">Photos</h2>
-              <PhotoUpload />
+              <div className="flex items-center gap-4">
+                {/* Preload progress indicator */}
+                {isPreloading && (
+                  <div className="flex items-center gap-2 text-zinc-400 text-sm">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    <span>Loading photos... {Math.round(preloadProgress)}%</span>
+                  </div>
+                )}
+                <PhotoUpload />
+              </div>
             </div>
-            <PhotoGallery />
+            <PhotoGallery preloadedPhotos={photos} preloadedUrls={preloadedUrls} />
           </section>
         )
 
@@ -256,6 +279,16 @@ export default function Portfolio() {
                         </a>
                       </div>
                     </div>
+
+                    {/* Preload indicator in sidebar */}
+                    {isPreloading && (
+                      <div className="border-t border-zinc-800 pt-6">
+                        <div className="flex items-center gap-2 text-zinc-500 text-xs">
+                          <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                          <span>Preloading photos... {Math.round(preloadProgress)}%</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
