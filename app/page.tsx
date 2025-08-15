@@ -7,6 +7,7 @@ import { Navigation } from "@/components/navigation"
 export default function Portfolio() {
   const [activeTab, setActiveTab] = useState("portfolio")
   const [showSpotify, setShowSpotify] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -104,7 +105,7 @@ export default function Portfolio() {
               <div className="grid lg:grid-cols-3 gap-16 items-start">
                 {/* Left Column - Main Content */}
                 <div className="lg:col-span-2 space-y-16">
-                  <div>
+                  <div className="pt-5">
                     <h1 className="font-inter font-light text-6xl md:text-8xl lg:text-9xl text-white mb-8 leading-[0.9] tracking-tight">
                       hey, i'm aarush
                     </h1>
@@ -323,8 +324,15 @@ export default function Portfolio() {
         />
       </div>
 
-      <SpotifyWidget isVisible={showSpotify} />
-      <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
+      {/* Only show Spotify widget on portfolio tab */}
+      {activeTab === "portfolio" && <SpotifyWidget isVisible={showSpotify && !sidebarOpen} />}
+
+      <Navigation
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        onSidebarToggle={setSidebarOpen}
+        showSpotifyInSidebar={activeTab === "portfolio"}
+      />
 
       {renderContent()}
     </main>

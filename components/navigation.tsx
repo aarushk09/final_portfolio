@@ -1,22 +1,28 @@
 "use client"
 
 import { useState } from "react"
+import { SpotifyWidget } from "@/components/spotify-widget"
 
 interface NavigationProps {
   activeTab: string
   onTabChange: (tab: string) => void
+  onSidebarToggle: (isOpen: boolean) => void
+  showSpotifyInSidebar: boolean
 }
 
-export function Navigation({ activeTab, onTabChange }: NavigationProps) {
+export function Navigation({ activeTab, onTabChange, onSidebarToggle, showSpotifyInSidebar }: NavigationProps) {
   const [isOpen, setIsOpen] = useState(false)
 
   const toggleMenu = () => {
-    setIsOpen(!isOpen)
+    const newState = !isOpen
+    setIsOpen(newState)
+    onSidebarToggle(newState)
   }
 
   const handleTabChange = (tab: string) => {
     onTabChange(tab)
     setIsOpen(false) // Close menu after selection
+    onSidebarToggle(false)
   }
 
   return (
@@ -43,7 +49,10 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity duration-300"
-          onClick={() => setIsOpen(false)}
+          onClick={() => {
+            setIsOpen(false)
+            onSidebarToggle(false)
+          }}
         />
       )}
 
@@ -53,8 +62,8 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="pt-24 px-8">
-          <div className="space-y-4">
+        <div className="pt-24 px-8 h-full flex flex-col">
+          <div className="space-y-4 flex-1">
             {[
               { id: "portfolio", label: "Portfolio", description: "About me & experience" },
               { id: "projects", label: "Projects", description: "Technical work & innovations" },
@@ -78,12 +87,17 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
             ))}
           </div>
 
-          {/* Footer in sidebar */}
-          <div className="absolute bottom-8 left-8 right-8">
-            <div className="border-t border-zinc-700/50 pt-6">
-              <p className="font-inter text-xs text-zinc-500 uppercase tracking-wide">Navigation</p>
-              <p className="font-crimson-text text-sm text-zinc-400 mt-2">Explore different sections of my portfolio</p>
+          {/* Spotify Widget in Sidebar */}
+          {showSpotifyInSidebar && isOpen && (
+            <div className="mb-8">
+              <SpotifyWidget isVisible={true} inSidebar={true} />
             </div>
+          )}
+
+          {/* Footer in sidebar */}
+          <div className="border-t border-zinc-700/50 pt-6 pb-8">
+            <p className="font-inter text-xs text-zinc-500 uppercase tracking-wide">Navigation</p>
+            <p className="font-crimson-text text-sm text-zinc-400 mt-2">Explore different sections of my portfolio</p>
           </div>
         </div>
       </nav>

@@ -16,12 +16,14 @@ interface SpotifyData {
 
 interface SpotifyWidgetProps {
   isVisible: boolean
+  inSidebar?: boolean
 }
 
-export function SpotifyWidget({ isVisible }: SpotifyWidgetProps) {
+export function SpotifyWidget({ isVisible, inSidebar = false }: SpotifyWidgetProps) {
   const [spotifyData, setSpotifyData] = useState<SpotifyData | null>(null)
   const [loading, setLoading] = useState(true)
   const [localProgress, setLocalProgress] = useState(0)
+  const [isMinimized, setIsMinimized] = useState(false)
 
   const fetchSpotifyData = async () => {
     try {
@@ -74,14 +76,24 @@ export function SpotifyWidget({ isVisible }: SpotifyWidgetProps) {
     return (localProgress / spotifyData.duration) * 100
   }
 
+  const toggleMinimized = () => {
+    setIsMinimized(!isMinimized)
+  }
+
   if (loading) {
     return (
       <div
-        className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500 ${
-          isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
+        className={`${
+          inSidebar
+            ? "w-full"
+            : `fixed top-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500 ${
+                isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
+              }`
         }`}
       >
-        <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl px-6 py-3 flex items-center gap-3 shadow-lg min-w-[320px]">
+        <div
+          className={`bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl px-6 py-3 flex items-center gap-3 shadow-lg ${inSidebar ? "w-full" : "min-w-[320px]"}`}
+        >
           <div className="w-2 h-2 bg-zinc-500 rounded-full animate-pulse" />
           <span className="text-zinc-400 font-crimson-text text-sm">Loading music...</span>
         </div>
@@ -92,11 +104,17 @@ export function SpotifyWidget({ isVisible }: SpotifyWidgetProps) {
   if (!spotifyData?.isPlaying || !spotifyData.title) {
     return (
       <div
-        className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500 ${
-          isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
+        className={`${
+          inSidebar
+            ? "w-full"
+            : `fixed top-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500 ${
+                isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
+              }`
         }`}
       >
-        <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl px-6 py-3 flex items-center gap-3 shadow-lg min-w-[320px]">
+        <div
+          className={`bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl px-6 py-3 flex items-center gap-3 shadow-lg ${inSidebar ? "w-full" : "min-w-[320px]"}`}
+        >
           <div className="w-2 h-2 bg-zinc-500 rounded-full" />
           <span className="text-zinc-400 font-crimson-text text-sm">Not listening to anything</span>
         </div>
@@ -104,22 +122,65 @@ export function SpotifyWidget({ isVisible }: SpotifyWidgetProps) {
     )
   }
 
+  // Minimized view
+  if (isMinimized && !inSidebar) {
+    return (
+      <div
+        className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500 ${
+          isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
+        }`}
+      >
+        <button
+          onClick={toggleMinimized}
+          className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl px-4 py-2 flex items-center gap-2 shadow-lg hover:bg-zinc-800/80 transition-all duration-300"
+        >
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+          <span className="text-green-400 font-inter text-xs uppercase tracking-wide">Now Playing</span>
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div
-      className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500 ${
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
+      className={`${
+        inSidebar
+          ? "w-full"
+          : `fixed top-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500 ${
+              isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
+            }`
       }`}
     >
       <a
         href={spotifyData.songUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="block bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl p-4 shadow-lg hover:bg-zinc-800/80 transition-all duration-300 group min-w-[400px] max-w-[500px]"
+        className={`block bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl p-4 shadow-lg hover:bg-zinc-800/80 transition-all duration-300 group relative ${
+          inSidebar ? "w-full" : "min-w-[400px] max-w-[500px]"
+        }`}
       >
+        {/* Hide button - only show when not in sidebar */}
+        {!inSidebar && (
+          <button
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              toggleMinimized()
+            }}
+            className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-full bg-zinc-800/50 hover:bg-zinc-700/50 transition-colors opacity-0 group-hover:opacity-100"
+          >
+            <svg className="w-3 h-3 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+            </svg>
+          </button>
+        )}
+
         <div className="flex items-center gap-4">
           {/* Album Art */}
           {spotifyData.albumImageUrl && (
-            <div className="relative w-14 h-14 rounded-lg overflow-hidden flex-shrink-0">
+            <div
+              className={`relative rounded-lg overflow-hidden flex-shrink-0 ${inSidebar ? "w-12 h-12" : "w-14 h-14"}`}
+            >
               <Image
                 src={spotifyData.albumImageUrl || "/placeholder.svg"}
                 alt={`${spotifyData.album} cover`}
@@ -136,11 +197,15 @@ export function SpotifyWidget({ isVisible }: SpotifyWidgetProps) {
               <span className="text-green-400 font-inter text-xs uppercase tracking-wide">Now Playing</span>
             </div>
 
-            <div className="text-white font-inter font-medium text-base truncate group-hover:text-green-400 transition-colors mb-1">
+            <div
+              className={`text-white font-inter font-medium truncate group-hover:text-green-400 transition-colors mb-1 ${inSidebar ? "text-sm" : "text-base"}`}
+            >
               {spotifyData.title}
             </div>
 
-            <div className="text-zinc-400 font-crimson-text text-sm truncate mb-3">by {spotifyData.artist}</div>
+            <div className={`text-zinc-400 font-crimson-text truncate mb-3 ${inSidebar ? "text-xs" : "text-sm"}`}>
+              by {spotifyData.artist}
+            </div>
 
             {/* Progress Bar */}
             {spotifyData.duration && localProgress && (
@@ -162,7 +227,7 @@ export function SpotifyWidget({ isVisible }: SpotifyWidgetProps) {
           {/* Spotify Icon */}
           <div className="flex-shrink-0">
             <svg
-              className="w-6 h-6 text-green-500 group-hover:text-green-400 transition-colors"
+              className={`text-green-500 group-hover:text-green-400 transition-colors ${inSidebar ? "w-5 h-5" : "w-6 h-6"}`}
               fill="currentColor"
               viewBox="0 0 24 24"
             >
