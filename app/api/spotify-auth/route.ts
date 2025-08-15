@@ -5,8 +5,10 @@ export async function POST(request: Request) {
     const { code } = await request.json()
 
     const CLIENT_ID = "39645a567ce04ca5b18b9f9fcd401230"
-    const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET || "4a846d68dae24c4b90d9eff0d992087c" // Your secret
+    const CLIENT_SECRET = "4a846d68dae24c4b90d9eff0d992087c"
     const REDIRECT_URI = "https://final-portfolio-lemon-gamma.vercel.app/spotify-setup"
+
+    console.log("Exchanging code for token...")
 
     const response = await fetch("https://accounts.spotify.com/api/token", {
       method: "POST",
@@ -22,6 +24,11 @@ export async function POST(request: Request) {
     })
 
     const data = await response.json()
+
+    if (data.error) {
+      console.error("Spotify API Error:", data)
+      return NextResponse.json({ error: data.error_description || data.error }, { status: 400 })
+    }
 
     return NextResponse.json(data)
   } catch (error) {
