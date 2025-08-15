@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 
 interface SpotifyData {
@@ -24,6 +24,9 @@ export function SpotifyWidget({ isVisible, inSidebar = false }: SpotifyWidgetPro
   const [loading, setLoading] = useState(true)
   const [localProgress, setLocalProgress] = useState(0)
   const [isMinimized, setIsMinimized] = useState(false)
+  const [shouldScroll, setShouldScroll] = useState(false)
+  const titleRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   const fetchSpotifyData = async () => {
     try {
@@ -43,12 +46,19 @@ export function SpotifyWidget({ isVisible, inSidebar = false }: SpotifyWidgetPro
 
   useEffect(() => {
     fetchSpotifyData()
-
     // Update every 10 seconds for fresh data
     const interval = setInterval(fetchSpotifyData, 10000)
-
     return () => clearInterval(interval)
   }, [])
+
+  // Check if title needs scrolling
+  useEffect(() => {
+    if (titleRef.current && containerRef.current) {
+      const titleWidth = titleRef.current.scrollWidth
+      const containerWidth = containerRef.current.clientWidth
+      setShouldScroll(titleWidth > containerWidth)
+    }
+  }, [spotifyData?.title])
 
   // Live progress bar update every second
   useEffect(() => {
@@ -92,7 +102,7 @@ export function SpotifyWidget({ isVisible, inSidebar = false }: SpotifyWidgetPro
         }`}
       >
         <div
-          className={`bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl px-6 py-3 flex items-center gap-3 shadow-lg ${inSidebar ? "w-full" : "min-w-[320px]"}`}
+          className={`bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl px-4 py-2 flex items-center gap-3 shadow-lg ${inSidebar ? "w-full" : "min-w-[280px]"}`}
         >
           <div className="w-2 h-2 bg-zinc-500 rounded-full animate-pulse" />
           <span className="text-zinc-400 font-crimson-text text-sm">Loading music...</span>
@@ -113,7 +123,7 @@ export function SpotifyWidget({ isVisible, inSidebar = false }: SpotifyWidgetPro
         }`}
       >
         <div
-          className={`bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl px-6 py-3 flex items-center gap-3 shadow-lg ${inSidebar ? "w-full" : "min-w-[320px]"}`}
+          className={`bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl px-4 py-2 flex items-center gap-3 shadow-lg ${inSidebar ? "w-full" : "min-w-[280px]"}`}
         >
           <div className="w-2 h-2 bg-zinc-500 rounded-full" />
           <span className="text-zinc-400 font-crimson-text text-sm">Not listening to anything</span>
@@ -142,100 +152,137 @@ export function SpotifyWidget({ isVisible, inSidebar = false }: SpotifyWidgetPro
   }
 
   return (
-    <div
-      className={`${
-        inSidebar
-          ? "w-full"
-          : `fixed top-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500 ${
-              isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
-            }`
-      }`}
-    >
-      <a
-        href={spotifyData.songUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={`block bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl p-3 shadow-lg hover:bg-zinc-800/80 transition-all duration-300 group relative ${
-          inSidebar ? "w-full" : "min-w-[400px] max-w-[500px]"
+    <>
+      <style jsx>{`
+        @keyframes carousel-scroll {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-100%);
+          }
+        }
+        .carousel-scroll {
+          animation: carousel-scroll 15s linear infinite;
+          animation-delay: 2s;
+        }
+        .carousel-container {
+          display: flex;
+          width: fit-content;
+        }
+        .carousel-text {
+          padding-right: 2rem;
+        }
+      `}</style>
+      <div
+        className={`${
+          inSidebar
+            ? "w-full"
+            : `fixed top-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500 ${
+                isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
+              }`
         }`}
       >
-        {/* Hide button - only show when not in sidebar */}
-        {!inSidebar && (
-          <button
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              toggleMinimized()
-            }}
-            className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-full bg-zinc-800/50 hover:bg-zinc-700/50 transition-colors opacity-0 group-hover:opacity-100"
-          >
-            <svg className="w-3 h-3 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-            </svg>
-          </button>
-        )}
-
-        <div className="flex items-center gap-4">
-          {/* Album Art */}
-          {spotifyData.albumImageUrl && (
-            <div
-              className={`relative rounded-lg overflow-hidden flex-shrink-0 ${inSidebar ? "w-12 h-12" : "w-14 h-14"}`}
+        <a
+          href={spotifyData.songUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`block bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl p-2.5 shadow-lg hover:bg-zinc-800/80 transition-all duration-300 group relative ${
+            inSidebar ? "w-full" : "min-w-[340px] max-w-[380px]"
+          }`}
+        >
+          {/* Hide button - only show when not in sidebar */}
+          {!inSidebar && (
+            <button
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                toggleMinimized()
+              }}
+              className="absolute top-1.5 right-1.5 w-5 h-5 flex items-center justify-center rounded-full bg-zinc-800/50 hover:bg-zinc-700/50 transition-colors opacity-0 group-hover:opacity-100"
             >
-              <Image
-                src={spotifyData.albumImageUrl || "/placeholder.svg"}
-                alt={`${spotifyData.album} cover`}
-                fill
-                className="object-cover"
-              />
-            </div>
+              <svg className="w-2.5 h-2.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+              </svg>
+            </button>
           )}
 
-          {/* Song Info */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              <span className="text-green-400 font-inter text-xs uppercase tracking-wide">Now Playing</span>
-            </div>
-
-            <div
-              className={`text-white font-inter font-medium truncate group-hover:text-green-400 transition-colors mb-1 ${inSidebar ? "text-sm" : "text-base"}`}
-            >
-              {spotifyData.title}
-            </div>
-
-            <div className={`text-zinc-400 font-crimson-text truncate mb-2 ${inSidebar ? "text-xs" : "text-sm"}`}>
-              by {spotifyData.artist}
-            </div>
-
-            {/* Progress Bar */}
-            {spotifyData.duration && localProgress && (
-              <div>
-                <div className="flex justify-between text-xs text-zinc-500 mb-2">
-                  <span>{formatTime(localProgress)}</span>
-                  <span>{formatTime(spotifyData.duration)}</span>
-                </div>
-                <div className="w-full bg-zinc-700 rounded-full h-1.5">
-                  <div
-                    className="bg-green-500 h-1.5 rounded-full transition-all duration-300 ease-linear"
-                    style={{ width: `${getProgressPercentage()}%` }}
-                  />
-                </div>
+          <div className="flex items-center gap-3">
+            {/* Album Art */}
+            {spotifyData.albumImageUrl && (
+              <div
+                className={`relative rounded-lg overflow-hidden flex-shrink-0 ${inSidebar ? "w-12 h-12" : "w-12 h-12"}`}
+              >
+                <Image
+                  src={spotifyData.albumImageUrl || "/placeholder.svg"}
+                  alt={`${spotifyData.album} cover`}
+                  fill
+                  className="object-cover"
+                />
               </div>
             )}
-          </div>
 
-          {/* Spotify Icon */}
-          <div className="flex-shrink-0">
-            <svg
-              className={`text-green-500 group-hover:text-green-400 transition-colors ${inSidebar ? "w-5 h-5" : "w-6 h-6"}`}
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.42 1.56-.299.421-1.02.599-1.559.3z" />
-            </svg>
+            {/* Song Info */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-0.5">
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                <span className="text-green-400 font-inter text-xs uppercase tracking-wide">Now Playing</span>
+              </div>
+
+              <div ref={containerRef} className={`overflow-hidden mb-0.5 ${inSidebar ? "text-sm" : "text-sm"}`}>
+                {shouldScroll ? (
+                  <div className="carousel-container carousel-scroll">
+                    <div className="carousel-text text-white font-inter font-medium group-hover:text-green-400 transition-colors whitespace-nowrap">
+                      {spotifyData.title}
+                    </div>
+                    <div className="carousel-text text-white font-inter font-medium group-hover:text-green-400 transition-colors whitespace-nowrap">
+                      {spotifyData.title}
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    ref={titleRef}
+                    className="text-white font-inter font-medium group-hover:text-green-400 transition-colors whitespace-nowrap"
+                  >
+                    {spotifyData.title}
+                  </div>
+                )}
+              </div>
+
+              <div className={`text-zinc-400 font-crimson-text truncate mb-1.5 ${inSidebar ? "text-xs" : "text-xs"}`}>
+                by {spotifyData.artist}
+              </div>
+
+              {/* Progress Bar */}
+              {spotifyData.duration && localProgress && (
+                <div>
+                  <div className="flex justify-between text-xs text-zinc-500 mb-1.5">
+                    <span>{formatTime(localProgress)}</span>
+                    <span>{formatTime(spotifyData.duration)}</span>
+                  </div>
+                  <div className="w-full bg-zinc-700 rounded-full h-1">
+                    <div
+                      className="bg-green-500 h-1 rounded-full transition-all duration-300 ease-linear"
+                      style={{ width: `${getProgressPercentage()}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Spotify Icon */}
+            <div className="flex-shrink-0">
+              <svg
+                className={`text-green-500 group-hover:text-green-400 transition-colors ${inSidebar ? "w-5 h-5" : "w-5 h-5"}`}
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.42 1.56-.299.421-1.02.599-1.559.3z" />
+              </svg>
+            </div>
           </div>
-        </div>
-      </a>
-    </div>
+        </a>
+      </div>
+    </>
   )
 }
