@@ -155,7 +155,7 @@ export function SpotifyWidget({ isVisible, inSidebar = false }: SpotifyWidgetPro
         href={spotifyData.songUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className={`block bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl p-4 shadow-lg hover:bg-zinc-800/80 transition-all duration-300 group relative ${
+        className={`block bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl p-3 shadow-lg hover:bg-zinc-800/80 transition-all duration-300 group relative ${
           inSidebar ? "w-full" : "min-w-[400px] max-w-[500px]"
         }`}
       >
@@ -192,7 +192,7 @@ export function SpotifyWidget({ isVisible, inSidebar = false }: SpotifyWidgetPro
 
           {/* Song Info */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-0.5">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
               <span className="text-green-400 font-inter text-xs uppercase tracking-wide">Now Playing</span>
             </div>
@@ -203,7 +203,7 @@ export function SpotifyWidget({ isVisible, inSidebar = false }: SpotifyWidgetPro
               {spotifyData.title}
             </div>
 
-            <div className={`text-zinc-400 font-crimson-text truncate mb-3 ${inSidebar ? "text-xs" : "text-sm"}`}>
+            <div className={`text-zinc-400 font-crimson-text truncate mb-2 ${inSidebar ? "text-xs" : "text-sm"}`}>
               by {spotifyData.artist}
             </div>
 
