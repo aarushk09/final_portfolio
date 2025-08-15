@@ -1,21 +1,20 @@
 import { NextResponse } from "next/server"
-import { readFile } from "fs/promises"
-import { join } from "path"
 
 export async function GET() {
   try {
-    const photosPath = join(process.cwd(), "data", "photos.json")
+    // Try to fetch photos from blob storage
+    const response = await fetch(`https://blob.vercel-storage.com/photos.json`)
 
-    try {
-      const data = await readFile(photosPath, "utf-8")
-      const photos = JSON.parse(data)
-      return NextResponse.json(photos)
-    } catch (error) {
+    if (response.ok) {
+      const data = await response.json()
+      return NextResponse.json(data)
+    } else {
       // File doesn't exist yet, return empty array
       return NextResponse.json({ photos: [] })
     }
   } catch (error) {
     console.error("Failed to fetch photos:", error)
-    return NextResponse.json({ error: "Failed to fetch photos" }, { status: 500 })
+    // Return empty array if there's any error
+    return NextResponse.json({ photos: [] })
   }
 }

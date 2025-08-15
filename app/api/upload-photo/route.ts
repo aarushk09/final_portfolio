@@ -1,7 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { put } from "@vercel/blob"
-import { writeFile, readFile } from "fs/promises"
-import { join } from "path"
 import { crypto } from "crypto"
 
 export async function POST(request: NextRequest) {
@@ -23,36 +21,46 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "File size must be less than 10MB" }, { status: 400 })
     }
 
-    // Upload to Vercel Blob
+    // Upload to Vercel Blob with unique filename
     const blob = await put(file.name, file, {
       access: "public",
       addRandomSuffix: true,
     })
 
-    // Save photo metadata
+    // Save photo metadata to another blob file (JSON)
     const photoData = {
       id: crypto.randomUUID(),
       url: blob.url,
       uploadedAt: new Date().toISOString(),
     }
 
-    // Read existing photos
-    const photosPath = join(process.cwd(), "data", "photos.json")
+    // Get existing photos from blob storage
     let photos = []
-
     try {
-      const existingData = await readFile(photosPath, "utf-8")
-      photos = JSON.parse(existingData).photos || []
+      const photosResponse = await fetch(
+        `${process.env.BLOB_READ_WRITE_TOKEN ? "https://blob.vercel-storage.com" : ""}/photos.json`,
+      )
+      if (photosResponse.ok) {
+        const existingData = await photosResponse.json()
+        photos = existingData.photos || []
+      }
     } catch (error) {
       // File doesn't exist yet, start with empty array
       photos = []
     }
 
-    // Add new photo
-    photos.unshift(photoData) // Add to beginning for newest first
+    // Add new photo to beginning
+    photos.unshift(photoData)
 
-    // Write back to file
-    await writeFile(photosPath, JSON.stringify({ photos }, null, 2))
+    // Save updated photos list back to blob storage
+    const photosBlob = new Blob([JSON.stringify({ photos }, null, 2)], {
+      type: "application/json",
+    })
+
+    await put("photos.json", photosBlob, {
+      access: "public",
+      addRandomSuffix: false,
+    })
 
     return NextResponse.json({
       success: true,
@@ -61,6 +69,12 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error("Upload error:", error)
-    return NextResponse.json({ error: "Failed to upload photo" }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: "Failed to upload photo",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
+    )
   }
 }
