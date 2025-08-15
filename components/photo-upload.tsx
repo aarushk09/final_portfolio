@@ -10,6 +10,7 @@ export function PhotoUpload() {
   const [isDragging, setIsDragging] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([])
+  const [error, setError] = useState<string>("")
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileSelect = (files: FileList | null) => {
@@ -19,6 +20,11 @@ export function PhotoUpload() {
       (file) => file.type.startsWith("image/") && file.size <= 10 * 1024 * 1024, // 10MB limit
     )
 
+    if (validFiles.length === 0) {
+      setError("Please select valid image files under 10MB")
+      return
+    }
+
     if (validFiles.length > 0) {
       uploadFiles(validFiles)
     }
@@ -26,6 +32,7 @@ export function PhotoUpload() {
 
   const uploadFiles = async (files: File[]) => {
     setUploading(true)
+    setError("")
     const uploaded: string[] = []
 
     try {
@@ -38,21 +45,27 @@ export function PhotoUpload() {
           body: formData,
         })
 
+        const data = await response.json()
+
         if (response.ok) {
-          const data = await response.json()
           uploaded.push(data.url)
+        } else {
+          throw new Error(data.error || "Upload failed")
         }
       }
 
-      setUploadedFiles((prev) => [...prev, ...uploaded])
+      setUploadedFiles(uploaded)
 
       // Close modal after successful upload
       setTimeout(() => {
         setIsOpen(false)
         setUploadedFiles([])
+        // Trigger a page refresh to show new photos
+        window.location.reload()
       }, 2000)
     } catch (error) {
       console.error("Upload failed:", error)
+      setError(error instanceof Error ? error.message : "Upload failed")
     } finally {
       setUploading(false)
     }
@@ -74,6 +87,13 @@ export function PhotoUpload() {
     handleFileSelect(e.dataTransfer.files)
   }
 
+  const resetModal = () => {
+    setIsOpen(false)
+    setError("")
+    setUploadedFiles([])
+    setUploading(false)
+  }
+
   return (
     <>
       <button
@@ -89,10 +109,16 @@ export function PhotoUpload() {
           <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-6">
               <h3 className="font-inter text-xl text-white">Upload Photos</h3>
-              <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-zinc-800 rounded-lg transition-colors">
+              <button onClick={resetModal} className="p-2 hover:bg-zinc-800 rounded-lg transition-colors">
                 <X className="w-5 h-5 text-zinc-400" />
               </button>
             </div>
+
+            {error && (
+              <div className="mb-4 p-3 bg-red-900/20 border border-red-700 rounded-lg">
+                <p className="text-red-400 font-inter text-sm">{error}</p>
+              </div>
+            )}
 
             <div
               className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 ${
@@ -113,6 +139,7 @@ export function PhotoUpload() {
                   <p className="text-green-400 font-inter">
                     {uploadedFiles.length} photo{uploadedFiles.length > 1 ? "s" : ""} uploaded successfully!
                   </p>
+                  <p className="text-zinc-400 font-inter text-sm">Refreshing page...</p>
                 </div>
               ) : (
                 <>
@@ -132,7 +159,7 @@ export function PhotoUpload() {
                   Choose Files
                 </button>
                 <button
-                  onClick={() => setIsOpen(false)}
+                  onClick={resetModal}
                   className="flex-1 bg-zinc-700 hover:bg-zinc-600 text-white font-inter py-3 px-4 rounded-lg transition-colors"
                 >
                   Cancel

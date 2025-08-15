@@ -1,6 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { put } from "@vercel/blob"
-import { crypto } from "crypto"
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,51 +20,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "File size must be less than 10MB" }, { status: 400 })
     }
 
-    // Upload to Vercel Blob with unique filename
-    const blob = await put(file.name, file, {
+    // Create a unique filename with timestamp
+    const timestamp = Date.now()
+    const fileExtension = file.name.split(".").pop() || "jpg"
+    const uniqueFilename = `photo-${timestamp}-${Math.random().toString(36).substring(2)}.${fileExtension}`
+
+    // Upload to Vercel Blob
+    const blob = await put(uniqueFilename, file, {
       access: "public",
-      addRandomSuffix: true,
-    })
-
-    // Save photo metadata to another blob file (JSON)
-    const photoData = {
-      id: crypto.randomUUID(),
-      url: blob.url,
-      uploadedAt: new Date().toISOString(),
-    }
-
-    // Get existing photos from blob storage
-    let photos = []
-    try {
-      const photosResponse = await fetch(
-        `${process.env.BLOB_READ_WRITE_TOKEN ? "https://blob.vercel-storage.com" : ""}/photos.json`,
-      )
-      if (photosResponse.ok) {
-        const existingData = await photosResponse.json()
-        photos = existingData.photos || []
-      }
-    } catch (error) {
-      // File doesn't exist yet, start with empty array
-      photos = []
-    }
-
-    // Add new photo to beginning
-    photos.unshift(photoData)
-
-    // Save updated photos list back to blob storage
-    const photosBlob = new Blob([JSON.stringify({ photos }, null, 2)], {
-      type: "application/json",
-    })
-
-    await put("photos.json", photosBlob, {
-      access: "public",
-      addRandomSuffix: false,
     })
 
     return NextResponse.json({
       success: true,
       url: blob.url,
-      id: photoData.id,
+      filename: uniqueFilename,
     })
   } catch (error) {
     console.error("Upload error:", error)
