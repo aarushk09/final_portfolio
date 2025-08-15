@@ -8,7 +8,7 @@ export default function SpotifySetup() {
   const [loading, setLoading] = useState(false)
 
   const CLIENT_ID = "39645a567ce04ca5b18b9f9fcd401230"
-  const REDIRECT_URI = "https://localhost:3000/spotify-setup"
+  const REDIRECT_URI = "https://final-portfolio-lemon-gamma.vercel.app/spotify-setup"
 
   const authUrl = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=user-read-currently-playing user-read-playback-state`
 
