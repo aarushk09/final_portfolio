@@ -55,6 +55,34 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer()
     const fileBuffer = new Uint8Array(arrayBuffer)
 
+    // Check if bucket exists first
+    const { data: buckets, error: listError } = await supabase.storage.listBuckets()
+
+    if (listError) {
+      console.error("Error checking buckets:", listError)
+      return NextResponse.json(
+        {
+          error: "Storage configuration error",
+          details: listError.message,
+          needsSetup: true,
+        },
+        { status: 500 },
+      )
+    }
+
+    const bucketExists = buckets?.some((bucket) => bucket.name === "portfolio-photos")
+
+    if (!bucketExists) {
+      return NextResponse.json(
+        {
+          error: "Storage bucket not found",
+          details: "Please run storage setup first",
+          needsSetup: true,
+        },
+        { status: 500 },
+      )
+    }
+
     // Upload to Supabase Storage
     const { data, error } = await supabase.storage.from("portfolio-photos").upload(fileName, fileBuffer, {
       contentType: file.type,
@@ -67,6 +95,19 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error("Supabase upload error:", error)
+
+      // Handle specific bucket errors
+      if (error.message.includes("Bucket not found")) {
+        return NextResponse.json(
+          {
+            error: "Storage bucket not found",
+            details: "Please run storage setup first",
+            needsSetup: true,
+          },
+          { status: 500 },
+        )
+      }
+
       throw new Error(error.message)
     }
 
@@ -84,8 +125,13 @@ export async function POST(request: NextRequest) {
 
     // Handle specific Supabase errors
     let errorMessage = "Failed to upload photo"
+    let needsSetup = false
+
     if (error instanceof Error) {
-      if (error.message.includes("storage")) {
+      if (error.message.includes("Bucket not found")) {
+        errorMessage = "Storage bucket not found - please run setup first"
+        needsSetup = true
+      } else if (error.message.includes("storage")) {
         errorMessage = "Storage service error - please try again"
       } else if (error.message.includes("quota")) {
         errorMessage = "Storage quota exceeded"
@@ -104,9 +150,8 @@ export async function POST(request: NextRequest) {
       {
         error: errorMessage,
         details: error instanceof Error ? error.message : "Unknown error",
-        isServiceError:
-          error instanceof Error &&
-          (error.message.includes("storage") || error.message.includes("quota") || error.message.includes("billing")),
+        needsSetup,
+        isServiceError: true,
       },
       { status: 500 },
     )

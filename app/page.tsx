@@ -6,6 +6,7 @@ import { Navigation } from "@/components/navigation"
 import { PhotoUpload } from "@/components/photo-upload"
 import { PhotoGallery } from "@/components/photo-gallery"
 import { DeleteAllPhotos } from "@/components/delete-all-photos"
+import { StorageSetup } from "@/components/storage-setup"
 import { usePhotoPreloader } from "@/hooks/usePhotoPreloader"
 
 export default function Portfolio() {
@@ -101,6 +102,7 @@ export default function Portfolio() {
             <div className="flex items-center justify-between mb-12">
               <h2 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500">Photos</h2>
               <div className="flex items-center gap-4">
+                <StorageSetup />
                 <PhotoUpload existingPhotos={photos} />
                 {photos.length > 0 && <DeleteAllPhotos photoCount={photos.length} />}
               </div>
