@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useRef } from "react"
-import { Upload, X, Check, Loader2, AlertCircle, ExternalLink } from "lucide-react"
+import { Upload, X, Check, Loader2, AlertCircle } from "lucide-react"
 
 interface Photo {
   id: string
@@ -18,6 +18,7 @@ interface UploadResult {
   error?: string
   isDuplicate?: boolean
   isServiceError?: boolean
+  needsSetup?: boolean
 }
 
 interface PhotoUploadProps {
@@ -39,7 +40,6 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
     const nameWithoutExt = filename.replace(/\.[^/.]+$/, "")
 
     // Common patterns for photo IDs:
-    // IMG_1234, DSC_5678, 20240115_123456, PXL_20240115_123456789, etc.
     const patterns = [
       /^(IMG_\d+)/i, // IMG_1234
       /^(DSC_\d+)/i, // DSC_5678
@@ -74,22 +74,24 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
     // Get existing photo IDs from the server
     try {
       const response = await fetch("/api/photo-ids")
-      const data = await response.json()
-      const existingIds = new Set(data.photoIds || [])
+      if (response.ok) {
+        const data = await response.json()
+        const existingIds = new Set(data.photoIds || [])
 
-      console.log("Existing photo IDs:", Array.from(existingIds))
-      console.log(
-        "New file IDs:",
-        fileIds.map((f) => f.photoId),
-      )
+        console.log("Existing photo IDs:", Array.from(existingIds))
+        console.log(
+          "New file IDs:",
+          fileIds.map((f) => f.photoId),
+        )
 
-      // Mark duplicates
-      fileIds.forEach((item) => {
-        item.isDuplicate = existingIds.has(item.photoId)
-        if (item.isDuplicate) {
-          console.log(`Duplicate detected: ${item.file.name} (ID: ${item.photoId})`)
-        }
-      })
+        // Mark duplicates
+        fileIds.forEach((item) => {
+          item.isDuplicate = existingIds.has(item.photoId)
+          if (item.isDuplicate) {
+            console.log(`Duplicate detected: ${item.file.name} (ID: ${item.photoId})`)
+          }
+        })
+      }
     } catch (error) {
       console.error("Failed to fetch existing photo IDs:", error)
       // If we can't fetch IDs, proceed without duplicate checking
@@ -101,9 +103,23 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
   const handleFileSelect = (files: FileList | null) => {
     if (!files) return
 
-    const validFiles = Array.from(files).filter(
-      (file) => file.type.startsWith("image/") && file.size <= 10 * 1024 * 1024, // 10MB limit for Supabase
-    )
+    const validFiles = Array.from(files).filter((file) => {
+      // Check file type
+      if (!file.type.startsWith("image/")) {
+        console.log(`Rejected ${file.name}: not an image`)
+        return false
+      }
+
+      // Check file size (10MB limit for Supabase)
+      if (file.size > 10 * 1024 * 1024) {
+        console.log(`Rejected ${file.name}: too large (${(file.size / 1024 / 1024).toFixed(2)}MB)`)
+        return false
+      }
+
+      return true
+    })
+
+    console.log(`Selected ${validFiles.length} valid files out of ${files.length} total`)
 
     if (validFiles.length === 0) {
       setError("Please select valid image files under 10MB")
@@ -141,66 +157,65 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
         })
       })
 
-      // Upload new files in parallel batches of 3
+      // Upload new files one by one to avoid overwhelming the server
       if (newFiles.length > 0) {
-        const batchSize = 3
-        for (let i = 0; i < newFiles.length; i += batchSize) {
-          const batch = newFiles.slice(i, i + batchSize)
+        for (let i = 0; i < newFiles.length; i++) {
+          const item = newFiles[i]
+          const fileIndex = i + 1
 
-          const batchPromises = batch.map(async (item, batchIndex) => {
-            const fileIndex = i + batchIndex + 1
-            setCurrentUpload(`Uploading ${item.file.name} (${fileIndex}/${newFiles.length})`)
+          setCurrentUpload(`Uploading ${item.file.name} (${fileIndex}/${newFiles.length})`)
 
-            try {
-              const formData = new FormData()
-              formData.append("file", item.file)
-              formData.append("photoId", item.photoId) // Send photo ID with file
+          try {
+            console.log(`Starting upload ${fileIndex}/${newFiles.length}:`, {
+              name: item.file.name,
+              type: item.file.type,
+              size: `${(item.file.size / 1024 / 1024).toFixed(2)}MB`,
+              photoId: item.photoId,
+            })
 
-              const response = await fetch("/api/upload-photo", {
-                method: "POST",
-                body: formData,
+            const formData = new FormData()
+            formData.append("file", item.file)
+            formData.append("photoId", item.photoId)
+
+            const response = await fetch("/api/upload-photo", {
+              method: "POST",
+              body: formData,
+            })
+
+            const data = await response.json()
+
+            if (response.ok) {
+              console.log(`Upload ${fileIndex} successful:`, data)
+              results.push({
+                file: item.file,
+                success: true,
+                url: data.url,
               })
-
-              const data = await response.json()
-
-              if (response.ok) {
-                return {
-                  file: item.file,
-                  success: true,
-                  url: data.url,
-                }
-              } else {
-                return {
-                  file: item.file,
-                  success: false,
-                  error: data.error || "Upload failed",
-                  isServiceError: data.isServiceError || false,
-                }
-              }
-            } catch (error) {
-              return {
+            } else {
+              console.error(`Upload ${fileIndex} failed:`, data)
+              results.push({
                 file: item.file,
                 success: false,
-                error: error instanceof Error ? error.message : "Upload failed",
-              }
+                error: data.error || "Upload failed",
+                isServiceError: data.isServiceError || false,
+                needsSetup: data.needsSetup || false,
+              })
             }
-          })
-
-          const batchResults = await Promise.allSettled(batchPromises)
-          const batchUploadResults = batchResults.map((result) =>
-            result.status === "fulfilled"
-              ? result.value
-              : { file: batch[0].file, success: false, error: "Unknown error" },
-          )
-
-          results.push(...batchUploadResults)
+          } catch (error) {
+            console.error(`Upload ${fileIndex} error:`, error)
+            results.push({
+              file: item.file,
+              success: false,
+              error: error instanceof Error ? error.message : "Upload failed",
+            })
+          }
 
           // Update results progressively
           setUploadResults([...results])
 
-          // Small delay between batches
-          if (i + batchSize < newFiles.length) {
-            await new Promise((resolve) => setTimeout(resolve, 100))
+          // Small delay between uploads
+          if (i < newFiles.length - 1) {
+            await new Promise((resolve) => setTimeout(resolve, 500))
           }
         }
       } else {
@@ -221,6 +236,7 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
         }, 2000)
       }
     } catch (error) {
+      console.error("Upload process error:", error)
       setError("Failed to process files: " + (error instanceof Error ? error.message : "Unknown error"))
       setUploading(false)
       setCurrentUpload("")
@@ -266,6 +282,7 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
   const failedUploads = uploadResults.filter((r) => !r.success && !r.isDuplicate)
   const duplicateUploads = uploadResults.filter((r) => r.isDuplicate)
   const serviceErrors = uploadResults.filter((r) => r.isServiceError)
+  const setupNeeded = uploadResults.some((r) => r.needsSetup)
 
   return (
     <>
@@ -293,30 +310,37 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
               </div>
             )}
 
-            {/* Service Error Alert */}
-            {serviceErrors.length > 0 && (
+            {/* Setup Needed Alert */}
+            {setupNeeded && (
               <div className="mb-4 p-4 bg-orange-900/20 border border-orange-700 rounded-lg">
                 <div className="flex items-start gap-3">
                   <AlertCircle className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <h4 className="font-inter text-orange-400 font-medium mb-2">Storage Service Issue</h4>
+                    <h4 className="font-inter text-orange-400 font-medium mb-2">Storage Setup Required</h4>
                     <p className="text-orange-300 font-inter text-sm mb-3">
-                      There's an issue with the storage service. Please check your Supabase setup:
+                      The storage bucket needs to be created first. Please use the "Setup Storage" button to create the
+                      bucket.
                     </p>
-                    <ul className="text-orange-300 font-inter text-sm space-y-1 mb-3 ml-4">
-                      <li>• Verify environment variables are set</li>
-                      <li>• Check Supabase project status</li>
-                      <li>• Ensure storage bucket exists</li>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Service Error Alert */}
+            {serviceErrors.length > 0 && !setupNeeded && (
+              <div className="mb-4 p-4 bg-red-900/20 border border-red-700 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <h4 className="font-inter text-red-400 font-medium mb-2">Upload Error</h4>
+                    <p className="text-red-300 font-inter text-sm mb-3">
+                      There was an issue uploading your photos. This might be due to:
+                    </p>
+                    <ul className="text-red-300 font-inter text-sm space-y-1 mb-3 ml-4">
+                      <li>• File format or size issues</li>
+                      <li>• Network connectivity problems</li>
+                      <li>• Storage service configuration</li>
                     </ul>
-                    <a
-                      href="https://supabase.com/dashboard"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-orange-400 hover:text-orange-300 font-inter text-sm underline"
-                    >
-                      Check Supabase Dashboard
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
                   </div>
                 </div>
               </div>
@@ -345,7 +369,8 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
             {uploading && (
               <div className="flex flex-col items-center gap-4 py-8">
                 <Loader2 className="w-8 h-8 text-green-500 animate-spin" />
-                <p className="text-zinc-300 font-inter">{currentUpload}</p>
+                <p className="text-zinc-300 font-inter text-center">{currentUpload}</p>
+                <p className="text-zinc-500 font-inter text-sm">Please wait, uploading files one by one...</p>
               </div>
             )}
 
@@ -419,7 +444,7 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
                       ))}
                     </div>
 
-                    {serviceErrors.length === 0 && (
+                    {!setupNeeded && (
                       <button
                         onClick={retryFailedUploads}
                         className="mt-4 w-full bg-red-600 hover:bg-red-700 text-white font-inter py-2 px-4 rounded-lg transition-colors"
