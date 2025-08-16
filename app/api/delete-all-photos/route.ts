@@ -1,23 +1,40 @@
 import { NextResponse } from "next/server"
-import { supabase } from "@/lib/supabase"
 
 export async function DELETE() {
   try {
-    console.log("Starting delete all photos process...")
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
-    // List all files in the photos folder
-    const { data, error } = await supabase.storage.from("portfolio-photos").list("photos", {
-      limit: 1000,
-      offset: 0,
-    })
-
-    if (error) {
-      console.error("Failed to list photos:", error)
-      throw new Error(error.message)
+    if (!supabaseUrl || !serviceRoleKey) {
+      return NextResponse.json({ error: "Missing Supabase configuration" }, { status: 500 })
     }
 
+    console.log("Starting delete all photos process...")
+
+    // List files first
+    const listUrl = `${supabaseUrl}/storage/v1/object/list/portfolio-photos`
+
+    const listResponse = await fetch(listUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${serviceRoleKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        prefix: "photos/",
+        limit: 1000,
+        offset: 0,
+      }),
+    })
+
+    if (!listResponse.ok) {
+      throw new Error(`Failed to list photos: ${listResponse.status}`)
+    }
+
+    const files = await listResponse.json()
+
     // Filter for image files only
-    const imageFiles = data.filter((file) => {
+    const imageFiles = files.filter((file: any) => {
       const isImage = file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i)
       return isImage && file.name !== ".emptyFolderPlaceholder"
     })
@@ -32,15 +49,25 @@ export async function DELETE() {
       })
     }
 
-    // Create array of file paths to delete
-    const filePaths = imageFiles.map((file) => `photos/${file.name}`)
+    // Delete all photos using REST API
+    const filePaths = imageFiles.map((file: any) => `photos/${file.name}`)
 
-    // Delete all photos at once
-    const { error: deleteError } = await supabase.storage.from("portfolio-photos").remove(filePaths)
+    const deleteUrl = `${supabaseUrl}/storage/v1/object/portfolio-photos`
 
-    if (deleteError) {
-      console.error("Failed to delete photos:", deleteError)
-      throw new Error(deleteError.message)
+    const deleteResponse = await fetch(deleteUrl, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${serviceRoleKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        prefixes: filePaths,
+      }),
+    })
+
+    if (!deleteResponse.ok) {
+      const errorText = await deleteResponse.text()
+      throw new Error(`Delete failed: ${deleteResponse.status} ${errorText}`)
     }
 
     console.log(`Successfully deleted ${imageFiles.length} photos`)

@@ -1,35 +1,49 @@
 import { NextResponse } from "next/server"
-import { supabase } from "@/lib/supabase"
 
 export async function GET() {
   try {
-    // List all files in the photos folder
-    const { data, error } = await supabase.storage.from("portfolio-photos").list("photos", {
-      limit: 100,
-      offset: 0,
-      sortBy: { column: "created_at", order: "desc" },
-    })
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
-    if (error) {
-      console.error("Failed to fetch photos from Supabase:", error)
+    if (!supabaseUrl || !serviceRoleKey) {
       return NextResponse.json({ photos: [] })
     }
 
-    // Filter for image files and get public URLs
-    const photos = data
-      .filter((file) => {
+    // List files using REST API
+    const listUrl = `${supabaseUrl}/storage/v1/object/list/portfolio-photos`
+
+    const response = await fetch(listUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${serviceRoleKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        prefix: "photos/",
+        limit: 1000,
+        offset: 0,
+      }),
+    })
+
+    if (!response.ok) {
+      console.error("Failed to list photos:", response.status, response.statusText)
+      return NextResponse.json({ photos: [] })
+    }
+
+    const files = await response.json()
+
+    // Filter for image files and format for frontend
+    const photos = files
+      .filter((file: any) => {
         const isImage = file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i)
         return isImage && file.name !== ".emptyFolderPlaceholder"
       })
-      .map((file) => {
-        const { data: urlData } = supabase.storage.from("portfolio-photos").getPublicUrl(`photos/${file.name}`)
-
-        return {
-          id: `photos/${file.name}`,
-          url: urlData.publicUrl,
-          uploadedAt: file.created_at || new Date().toISOString(),
-        }
-      })
+      .map((file: any) => ({
+        id: `photos/${file.name}`,
+        url: `${supabaseUrl}/storage/v1/object/public/portfolio-photos/photos/${file.name}`,
+        uploadedAt: file.created_at || new Date().toISOString(),
+      }))
+      .sort((a: any, b: any) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime())
 
     return NextResponse.json({ photos })
   } catch (error) {

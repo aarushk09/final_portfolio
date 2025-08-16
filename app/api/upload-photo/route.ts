@@ -1,5 +1,4 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,7 +22,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No photo ID provided" }, { status: 400 })
     }
 
-    // Create a fresh Supabase client with service role key
+    // Check environment variables
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
@@ -38,40 +37,53 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create admin client directly here
-    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    })
+    // Validate file type
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"]
+    if (!allowedTypes.includes(file.type.toLowerCase())) {
+      return NextResponse.json({ error: `Unsupported file type: ${file.type}` }, { status: 400 })
+    }
+
+    // File size limit (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      return NextResponse.json({ error: "File size must be less than 10MB" }, { status: 400 })
+    }
 
     // Get file extension
     const extension = file.name.split(".").pop()?.toLowerCase() || "jpg"
     const timestamp = Date.now()
     const fileName = `photos/img_${timestamp}_${photoId}.${extension}`
 
-    console.log("Uploading with fresh admin client:", {
+    console.log("Uploading via REST API:", {
       fileName,
       fileSize: file.size,
       fileType: file.type,
     })
 
-    // Convert file to bytes
-    const bytes = await file.arrayBuffer()
-    const fileBuffer = new Uint8Array(bytes)
+    // Convert file to ArrayBuffer
+    const fileBuffer = await file.arrayBuffer()
 
-    // Upload using the fresh admin client
-    const { data, error } = await supabaseAdmin.storage.from("portfolio-photos").upload(fileName, fileBuffer, {
-      contentType: file.type,
-      cacheControl: "3600",
-      upsert: false,
+    // Upload directly to Supabase Storage REST API
+    const uploadUrl = `${supabaseUrl}/storage/v1/object/portfolio-photos/${fileName}`
+
+    const uploadResponse = await fetch(uploadUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${serviceRoleKey}`,
+        "Content-Type": file.type,
+        "x-upsert": "false",
+      },
+      body: fileBuffer,
     })
 
-    if (error) {
-      console.error("Upload failed:", error)
+    if (!uploadResponse.ok) {
+      const errorText = await uploadResponse.text()
+      console.error("Upload failed:", {
+        status: uploadResponse.status,
+        statusText: uploadResponse.statusText,
+        error: errorText,
+      })
 
-      if (error.message.includes("Bucket not found")) {
+      if (uploadResponse.status === 404) {
         return NextResponse.json(
           {
             error: "Storage bucket not found",
@@ -82,24 +94,36 @@ export async function POST(request: NextRequest) {
         )
       }
 
+      if (uploadResponse.status === 403) {
+        return NextResponse.json(
+          {
+            error: "Permission denied",
+            details: "Check RLS policies or use service role key",
+            needsRLSFix: true,
+          },
+          { status: 500 },
+        )
+      }
+
       return NextResponse.json(
         {
           error: "Upload failed",
-          details: error.message,
+          details: `HTTP ${uploadResponse.status}: ${errorText}`,
           isServiceError: true,
         },
         { status: 500 },
       )
     }
 
-    console.log("Upload successful:", data)
+    const uploadResult = await uploadResponse.json()
+    console.log("Upload successful:", uploadResult)
 
     // Get public URL
-    const { data: urlData } = supabaseAdmin.storage.from("portfolio-photos").getPublicUrl(fileName)
+    const publicUrl = `${supabaseUrl}/storage/v1/object/public/portfolio-photos/${fileName}`
 
     return NextResponse.json({
       success: true,
-      url: urlData.publicUrl,
+      url: publicUrl,
       fileName: fileName,
       photoId: photoId,
     })

@@ -1,5 +1,4 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { supabase } from "@/lib/supabase"
 
 export async function DELETE(request: NextRequest) {
   try {
@@ -9,14 +8,29 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Photo ID is required" }, { status: 400 })
     }
 
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      return NextResponse.json({ error: "Missing Supabase configuration" }, { status: 500 })
+    }
+
     console.log("Deleting photo:", photoId)
 
-    // Delete the photo from Supabase Storage
-    const { error } = await supabase.storage.from("portfolio-photos").remove([photoId])
+    // Delete using REST API
+    const deleteUrl = `${supabaseUrl}/storage/v1/object/portfolio-photos/${photoId}`
 
-    if (error) {
-      console.error("Supabase delete error:", error)
-      throw new Error(error.message)
+    const response = await fetch(deleteUrl, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${serviceRoleKey}`,
+      },
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error("Delete failed:", response.status, errorText)
+      throw new Error(`HTTP ${response.status}: ${errorText}`)
     }
 
     return NextResponse.json({ success: true })
