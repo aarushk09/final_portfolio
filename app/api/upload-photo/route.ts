@@ -5,9 +5,14 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
     const file = formData.get("file") as File
+    const hash = formData.get("hash") as string
 
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 })
+    }
+
+    if (!hash) {
+      return NextResponse.json({ error: "No file hash provided" }, { status: 400 })
     }
 
     // More flexible file type validation
@@ -16,14 +21,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unsupported file type" }, { status: 400 })
     }
 
-    // Increased file size limit
+    // File size limit
     if (file.size > 15 * 1024 * 1024) {
       return NextResponse.json({ error: "File size must be less than 15MB" }, { status: 400 })
     }
-
-    // More robust filename generation
-    const timestamp = Date.now()
-    const randomId = Math.random().toString(36).substring(2, 15) // Longer random string
 
     // Get file extension more reliably
     let extension = "jpg" // default
@@ -39,25 +40,34 @@ export async function POST(request: NextRequest) {
 
     extension = mimeToExt[file.type.toLowerCase()] || "jpg"
 
-    // Create a very safe filename with only alphanumeric characters
-    const safeFilename = `img_${timestamp}_${randomId}.${extension}`
+    // Create filename with hash for duplicate detection
+    const timestamp = Date.now()
+    const shortHash = hash.substring(0, 12) // Use first 12 chars of hash
+    const safeFilename = `img_${timestamp}_${shortHash}.${extension}`
 
     console.log("Uploading:", {
       filename: safeFilename,
       type: file.type,
       size: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
+      hash: shortHash,
     })
 
-    // Upload to Vercel Blob with error handling
+    // Upload to Vercel Blob with metadata
     const blob = await put(safeFilename, file, {
       access: "public",
-      addRandomSuffix: true, // Extra safety for unique names
+      addRandomSuffix: false, // Don't add random suffix since we're using hash
+      metadata: {
+        hash: hash,
+        originalName: file.name,
+        uploadedAt: new Date().toISOString(),
+      },
     })
 
     return NextResponse.json({
       success: true,
       url: blob.url,
       filename: safeFilename,
+      hash: shortHash,
     })
   } catch (error) {
     console.error("Upload error:", error)

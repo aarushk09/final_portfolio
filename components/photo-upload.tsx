@@ -32,7 +32,7 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
   const [error, setError] = useState<string>("")
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Create a simple hash for duplicate detection
+  // Create a proper hash for duplicate detection
   const createFileHash = async (file: File): Promise<string> => {
     const buffer = await file.arrayBuffer()
     const hashBuffer = await crypto.subtle.digest("SHA-256", buffer)
@@ -40,24 +40,39 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
     return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
   }
 
-  // Check if file is duplicate based on size and name similarity
-  const isDuplicateFile = (file: File, existingPhotos: Photo[]): boolean => {
-    // Simple duplicate check based on file size and similar naming
-    const fileSize = file.size
-    const fileName = file.name.toLowerCase()
+  // Check for duplicates by comparing file hashes
+  const checkForDuplicates = async (files: File[]): Promise<{ file: File; hash: string; isDuplicate: boolean }[]> => {
+    const fileHashes = await Promise.all(
+      files.map(async (file) => ({
+        file,
+        hash: await createFileHash(file),
+        isDuplicate: false,
+      })),
+    )
 
-    return existingPhotos.some((photo) => {
-      // Extract potential file info from URL (this is a simple heuristic)
-      const urlParts = photo.url.split("/").pop() || ""
-      return urlParts.includes(fileSize.toString()) || fileName.includes("duplicate")
-    })
+    // Get existing photo hashes from the server
+    try {
+      const response = await fetch("/api/photo-hashes")
+      const data = await response.json()
+      const existingHashes = new Set(data.hashes || [])
+
+      // Mark duplicates
+      fileHashes.forEach((item) => {
+        item.isDuplicate = existingHashes.has(item.hash)
+      })
+    } catch (error) {
+      console.error("Failed to fetch existing hashes:", error)
+      // If we can't fetch hashes, proceed without duplicate checking
+    }
+
+    return fileHashes
   }
 
   const handleFileSelect = (files: FileList | null) => {
     if (!files) return
 
     const validFiles = Array.from(files).filter(
-      (file) => file.type.startsWith("image/") && file.size <= 15 * 1024 * 1024, // Increased to 15MB
+      (file) => file.type.startsWith("image/") && file.size <= 15 * 1024 * 1024, // 15MB limit
     )
 
     if (validFiles.length === 0) {
@@ -75,87 +90,109 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
     setError("")
     setUploadResults([])
 
-    const results: UploadResult[] = []
+    try {
+      // First, check for duplicates
+      setCurrentUpload("Checking for duplicates...")
+      const fileHashes = await checkForDuplicates(files)
 
-    // Process files in parallel batches of 3 for speed
-    const batchSize = 3
-    for (let i = 0; i < files.length; i += batchSize) {
-      const batch = files.slice(i, i + batchSize)
+      const results: UploadResult[] = []
 
-      const batchPromises = batch.map(async (file, batchIndex) => {
-        const fileIndex = i + batchIndex + 1
-        setCurrentUpload(`Processing ${file.name} (${fileIndex}/${files.length})`)
+      // Separate duplicates from new files
+      const newFiles = fileHashes.filter((item) => !item.isDuplicate)
+      const duplicateFiles = fileHashes.filter((item) => item.isDuplicate)
 
-        try {
-          // Quick duplicate check
-          if (isDuplicateFile(file, existingPhotos)) {
-            return {
-              file,
-              success: false,
-              isDuplicate: true,
-              error: "Duplicate photo (skipped)",
-            }
-          }
-
-          const formData = new FormData()
-          formData.append("file", file)
-
-          const response = await fetch("/api/upload-photo", {
-            method: "POST",
-            body: formData,
-          })
-
-          const data = await response.json()
-
-          if (response.ok) {
-            return {
-              file,
-              success: true,
-              url: data.url,
-            }
-          } else {
-            return {
-              file,
-              success: false,
-              error: data.error || "Upload failed",
-            }
-          }
-        } catch (error) {
-          return {
-            file,
-            success: false,
-            error: error instanceof Error ? error.message : "Upload failed",
-          }
-        }
+      // Add duplicate results immediately
+      duplicateFiles.forEach((item) => {
+        results.push({
+          file: item.file,
+          success: false,
+          isDuplicate: true,
+          error: "Duplicate photo (skipped)",
+        })
       })
 
-      const batchResults = await Promise.allSettled(batchPromises)
-      const batchUploadResults = batchResults.map((result) =>
-        result.status === "fulfilled" ? result.value : { file: batch[0], success: false, error: "Unknown error" },
-      )
+      // Upload new files in parallel batches of 3
+      if (newFiles.length > 0) {
+        const batchSize = 3
+        for (let i = 0; i < newFiles.length; i += batchSize) {
+          const batch = newFiles.slice(i, i + batchSize)
 
-      results.push(...batchUploadResults)
+          const batchPromises = batch.map(async (item, batchIndex) => {
+            const fileIndex = i + batchIndex + 1
+            setCurrentUpload(`Uploading ${item.file.name} (${fileIndex}/${newFiles.length})`)
 
-      // Update results progressively
-      setUploadResults([...results])
+            try {
+              const formData = new FormData()
+              formData.append("file", item.file)
+              formData.append("hash", item.hash) // Send hash with file
 
-      // Small delay between batches
-      if (i + batchSize < files.length) {
-        await new Promise((resolve) => setTimeout(resolve, 100))
+              const response = await fetch("/api/upload-photo", {
+                method: "POST",
+                body: formData,
+              })
+
+              const data = await response.json()
+
+              if (response.ok) {
+                return {
+                  file: item.file,
+                  success: true,
+                  url: data.url,
+                }
+              } else {
+                return {
+                  file: item.file,
+                  success: false,
+                  error: data.error || "Upload failed",
+                }
+              }
+            } catch (error) {
+              return {
+                file: item.file,
+                success: false,
+                error: error instanceof Error ? error.message : "Upload failed",
+              }
+            }
+          })
+
+          const batchResults = await Promise.allSettled(batchPromises)
+          const batchUploadResults = batchResults.map((result) =>
+            result.status === "fulfilled"
+              ? result.value
+              : { file: batch[0].file, success: false, error: "Unknown error" },
+          )
+
+          results.push(...batchUploadResults)
+
+          // Update results progressively
+          setUploadResults([...results])
+
+          // Small delay between batches
+          if (i + batchSize < newFiles.length) {
+            await new Promise((resolve) => setTimeout(resolve, 100))
+          }
+        }
+      } else {
+        // Only duplicates found
+        setUploadResults(results)
       }
-    }
 
-    setUploading(false)
-    setCurrentUpload("")
+      setUploading(false)
+      setCurrentUpload("")
 
-    // Auto-close and refresh if all uploads were successful
-    const successfulUploads = results.filter((r) => r.success)
-    if (successfulUploads.length === results.length && results.length > 0) {
-      setTimeout(() => {
-        setIsOpen(false)
-        setUploadResults([])
-        window.location.reload()
-      }, 2000)
+      // Auto-close and refresh if all uploads were successful
+      const successfulUploads = results.filter((r) => r.success)
+      if (successfulUploads.length > 0 && results.filter((r) => !r.success && !r.isDuplicate).length === 0) {
+        setTimeout(() => {
+          setIsOpen(false)
+          setUploadResults([])
+          window.location.reload()
+        }, 2000)
+      }
+    } catch (error) {
+      setError("Failed to process files: " + (error instanceof Error ? error.message : "Unknown error"))
+      setUploading(false)
+      setCurrentUpload("")
     }
   }
 
@@ -237,6 +274,9 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
                 <Upload className="w-12 h-12 text-zinc-400 mx-auto mb-4" />
                 <p className="text-zinc-300 font-inter mb-2">Drag and drop photos here, or click to select</p>
                 <p className="text-zinc-500 font-crimson-text text-sm">Supports JPG, PNG, WebP up to 15MB each</p>
+                <p className="text-zinc-600 font-inter text-xs mt-2">
+                  Duplicate photos will be automatically detected and skipped
+                </p>
               </div>
             )}
 
@@ -269,7 +309,8 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
                     <div className="flex items-center gap-2 mb-4">
                       <AlertCircle className="w-5 h-5 text-yellow-500" />
                       <h4 className="font-inter text-yellow-400 font-medium">
-                        {duplicateUploads.length} duplicate photo{duplicateUploads.length > 1 ? "s" : ""} skipped:
+                        {duplicateUploads.length} duplicate photo{duplicateUploads.length > 1 ? "s" : ""} detected and
+                        skipped:
                       </h4>
                     </div>
 
@@ -284,7 +325,7 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
                             />
                           </div>
                           <p className="text-zinc-300 font-inter text-xs truncate mb-1">{result.file.name}</p>
-                          <p className="text-yellow-400 font-inter text-xs">Already exists</p>
+                          <p className="text-yellow-400 font-inter text-xs">Exact duplicate found</p>
                         </div>
                       ))}
                     </div>
