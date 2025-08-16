@@ -32,40 +32,69 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
   const [error, setError] = useState<string>("")
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Create a proper hash for duplicate detection
-  const createFileHash = async (file: File): Promise<string> => {
-    const buffer = await file.arrayBuffer()
-    const hashBuffer = await crypto.subtle.digest("SHA-256", buffer)
-    const hashArray = Array.from(new Uint8Array(hashBuffer))
-    return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
-  }
+  // Extract unique identifier from filename
+  const extractPhotoId = (filename: string): string => {
+    // Remove extension first
+    const nameWithoutExt = filename.replace(/\.[^/.]+$/, "")
 
-  // Check for duplicates by comparing file hashes
-  const checkForDuplicates = async (files: File[]): Promise<{ file: File; hash: string; isDuplicate: boolean }[]> => {
-    const fileHashes = await Promise.all(
-      files.map(async (file) => ({
-        file,
-        hash: await createFileHash(file),
-        isDuplicate: false,
-      })),
-    )
+    // Common patterns for photo IDs:
+    // IMG_1234, DSC_5678, 20240115_123456, PXL_20240115_123456789, etc.
+    const patterns = [
+      /^(IMG_\d+)/i, // IMG_1234
+      /^(DSC_\d+)/i, // DSC_5678
+      /^(PXL_\d+_\d+)/i, // PXL_20240115_123456789
+      /^(\d{8}_\d+)/, // 20240115_123456
+      /^(\d{4}-\d{2}-\d{2}_\d+)/, // 2024-01-15_123456
+      /^([A-Z]{2,4}\d+)/i, // DCIM1234, etc.
+      /^(\d+)/, // Just numbers: 1234567890
+    ]
 
-    // Get existing photo hashes from the server
-    try {
-      const response = await fetch("/api/photo-hashes")
-      const data = await response.json()
-      const existingHashes = new Set(data.hashes || [])
-
-      // Mark duplicates
-      fileHashes.forEach((item) => {
-        item.isDuplicate = existingHashes.has(item.hash)
-      })
-    } catch (error) {
-      console.error("Failed to fetch existing hashes:", error)
-      // If we can't fetch hashes, proceed without duplicate checking
+    for (const pattern of patterns) {
+      const match = nameWithoutExt.match(pattern)
+      if (match) {
+        return match[1].toUpperCase()
+      }
     }
 
-    return fileHashes
+    // If no pattern matches, use the full filename without extension as ID
+    return nameWithoutExt.toUpperCase()
+  }
+
+  // Check for duplicates by comparing photo IDs
+  const checkForDuplicates = async (
+    files: File[],
+  ): Promise<{ file: File; photoId: string; isDuplicate: boolean }[]> => {
+    const fileIds = files.map((file) => ({
+      file,
+      photoId: extractPhotoId(file.name),
+      isDuplicate: false,
+    }))
+
+    // Get existing photo IDs from the server
+    try {
+      const response = await fetch("/api/photo-ids")
+      const data = await response.json()
+      const existingIds = new Set(data.photoIds || [])
+
+      console.log("Existing photo IDs:", Array.from(existingIds))
+      console.log(
+        "New file IDs:",
+        fileIds.map((f) => f.photoId),
+      )
+
+      // Mark duplicates
+      fileIds.forEach((item) => {
+        item.isDuplicate = existingIds.has(item.photoId)
+        if (item.isDuplicate) {
+          console.log(`Duplicate detected: ${item.file.name} (ID: ${item.photoId})`)
+        }
+      })
+    } catch (error) {
+      console.error("Failed to fetch existing photo IDs:", error)
+      // If we can't fetch IDs, proceed without duplicate checking
+    }
+
+    return fileIds
   }
 
   const handleFileSelect = (files: FileList | null) => {
@@ -92,14 +121,14 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
 
     try {
       // First, check for duplicates
-      setCurrentUpload("Checking for duplicates...")
-      const fileHashes = await checkForDuplicates(files)
+      setCurrentUpload("Checking for duplicate photo IDs...")
+      const fileIds = await checkForDuplicates(files)
 
       const results: UploadResult[] = []
 
       // Separate duplicates from new files
-      const newFiles = fileHashes.filter((item) => !item.isDuplicate)
-      const duplicateFiles = fileHashes.filter((item) => item.isDuplicate)
+      const newFiles = fileIds.filter((item) => !item.isDuplicate)
+      const duplicateFiles = fileIds.filter((item) => item.isDuplicate)
 
       // Add duplicate results immediately
       duplicateFiles.forEach((item) => {
@@ -107,7 +136,7 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
           file: item.file,
           success: false,
           isDuplicate: true,
-          error: "Duplicate photo (skipped)",
+          error: `Photo ID "${item.photoId}" already exists`,
         })
       })
 
@@ -124,7 +153,7 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
             try {
               const formData = new FormData()
               formData.append("file", item.file)
-              formData.append("hash", item.hash) // Send hash with file
+              formData.append("photoId", item.photoId) // Send photo ID with file
 
               const response = await fetch("/api/upload-photo", {
                 method: "POST",
@@ -275,7 +304,7 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
                 <p className="text-zinc-300 font-inter mb-2">Drag and drop photos here, or click to select</p>
                 <p className="text-zinc-500 font-crimson-text text-sm">Supports JPG, PNG, WebP up to 15MB each</p>
                 <p className="text-zinc-600 font-inter text-xs mt-2">
-                  Duplicate photos will be automatically detected and skipped
+                  Photos with duplicate IDs (IMG_1234, DSC_5678, etc.) will be automatically skipped
                 </p>
               </div>
             )}
@@ -309,7 +338,7 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
                     <div className="flex items-center gap-2 mb-4">
                       <AlertCircle className="w-5 h-5 text-yellow-500" />
                       <h4 className="font-inter text-yellow-400 font-medium">
-                        {duplicateUploads.length} duplicate photo{duplicateUploads.length > 1 ? "s" : ""} detected and
+                        {duplicateUploads.length} photo{duplicateUploads.length > 1 ? "s" : ""} with duplicate IDs
                         skipped:
                       </h4>
                     </div>
@@ -325,7 +354,7 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
                             />
                           </div>
                           <p className="text-zinc-300 font-inter text-xs truncate mb-1">{result.file.name}</p>
-                          <p className="text-yellow-400 font-inter text-xs">Exact duplicate found</p>
+                          <p className="text-yellow-400 font-inter text-xs">{result.error}</p>
                         </div>
                       ))}
                     </div>

@@ -5,14 +5,14 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
     const file = formData.get("file") as File
-    const hash = formData.get("hash") as string
+    const photoId = formData.get("photoId") as string
 
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 })
     }
 
-    if (!hash) {
-      return NextResponse.json({ error: "No file hash provided" }, { status: 400 })
+    if (!photoId) {
+      return NextResponse.json({ error: "No photo ID provided" }, { status: 400 })
     }
 
     // More flexible file type validation
@@ -40,24 +40,23 @@ export async function POST(request: NextRequest) {
 
     extension = mimeToExt[file.type.toLowerCase()] || "jpg"
 
-    // Create filename with hash for duplicate detection
+    // Create filename with photo ID for duplicate detection
     const timestamp = Date.now()
-    const shortHash = hash.substring(0, 12) // Use first 12 chars of hash
-    const safeFilename = `img_${timestamp}_${shortHash}.${extension}`
+    const safeFilename = `img_${timestamp}_${photoId}.${extension}`
 
     console.log("Uploading:", {
       filename: safeFilename,
       type: file.type,
       size: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
-      hash: shortHash,
+      photoId: photoId,
     })
 
     // Upload to Vercel Blob with metadata
     const blob = await put(safeFilename, file, {
       access: "public",
-      addRandomSuffix: false, // Don't add random suffix since we're using hash
+      addRandomSuffix: false, // Don't add random suffix since we're using photo ID
       metadata: {
-        hash: hash,
+        photoId: photoId,
         originalName: file.name,
         uploadedAt: new Date().toISOString(),
       },
@@ -67,7 +66,7 @@ export async function POST(request: NextRequest) {
       success: true,
       url: blob.url,
       filename: safeFilename,
-      hash: shortHash,
+      photoId: photoId,
     })
   } catch (error) {
     console.error("Upload error:", error)
