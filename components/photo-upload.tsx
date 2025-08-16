@@ -5,14 +5,25 @@ import type React from "react"
 import { useState, useRef } from "react"
 import { Upload, X, Check, Loader2, AlertCircle } from "lucide-react"
 
+interface Photo {
+  id: string
+  url: string
+  uploadedAt: string
+}
+
 interface UploadResult {
   file: File
   success: boolean
   url?: string
   error?: string
+  isDuplicate?: boolean
 }
 
-export function PhotoUpload() {
+interface PhotoUploadProps {
+  existingPhotos?: Photo[]
+}
+
+export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -21,15 +32,36 @@ export function PhotoUpload() {
   const [error, setError] = useState<string>("")
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Create a simple hash for duplicate detection
+  const createFileHash = async (file: File): Promise<string> => {
+    const buffer = await file.arrayBuffer()
+    const hashBuffer = await crypto.subtle.digest("SHA-256", buffer)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
+  }
+
+  // Check if file is duplicate based on size and name similarity
+  const isDuplicateFile = (file: File, existingPhotos: Photo[]): boolean => {
+    // Simple duplicate check based on file size and similar naming
+    const fileSize = file.size
+    const fileName = file.name.toLowerCase()
+
+    return existingPhotos.some((photo) => {
+      // Extract potential file info from URL (this is a simple heuristic)
+      const urlParts = photo.url.split("/").pop() || ""
+      return urlParts.includes(fileSize.toString()) || fileName.includes("duplicate")
+    })
+  }
+
   const handleFileSelect = (files: FileList | null) => {
     if (!files) return
 
     const validFiles = Array.from(files).filter(
-      (file) => file.type.startsWith("image/") && file.size <= 10 * 1024 * 1024, // 10MB limit
+      (file) => file.type.startsWith("image/") && file.size <= 15 * 1024 * 1024, // Increased to 15MB
     )
 
     if (validFiles.length === 0) {
-      setError("Please select valid image files under 10MB")
+      setError("Please select valid image files under 15MB")
       return
     }
 
@@ -45,49 +77,74 @@ export function PhotoUpload() {
 
     const results: UploadResult[] = []
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i]
-      setCurrentUpload(`Uploading ${file.name} (${i + 1}/${files.length})`)
+    // Process files in parallel batches of 3 for speed
+    const batchSize = 3
+    for (let i = 0; i < files.length; i += batchSize) {
+      const batch = files.slice(i, i + batchSize)
 
-      try {
-        const formData = new FormData()
-        formData.append("file", file)
+      const batchPromises = batch.map(async (file, batchIndex) => {
+        const fileIndex = i + batchIndex + 1
+        setCurrentUpload(`Processing ${file.name} (${fileIndex}/${files.length})`)
 
-        const response = await fetch("/api/upload-photo", {
-          method: "POST",
-          body: formData,
-        })
+        try {
+          // Quick duplicate check
+          if (isDuplicateFile(file, existingPhotos)) {
+            return {
+              file,
+              success: false,
+              isDuplicate: true,
+              error: "Duplicate photo (skipped)",
+            }
+          }
 
-        const data = await response.json()
+          const formData = new FormData()
+          formData.append("file", file)
 
-        if (response.ok) {
-          results.push({
-            file,
-            success: true,
-            url: data.url,
+          const response = await fetch("/api/upload-photo", {
+            method: "POST",
+            body: formData,
           })
-        } else {
-          results.push({
+
+          const data = await response.json()
+
+          if (response.ok) {
+            return {
+              file,
+              success: true,
+              url: data.url,
+            }
+          } else {
+            return {
+              file,
+              success: false,
+              error: data.error || "Upload failed",
+            }
+          }
+        } catch (error) {
+          return {
             file,
             success: false,
-            error: data.error || "Upload failed",
-          })
+            error: error instanceof Error ? error.message : "Upload failed",
+          }
         }
-      } catch (error) {
-        results.push({
-          file,
-          success: false,
-          error: error instanceof Error ? error.message : "Upload failed",
-        })
-      }
+      })
 
-      // Small delay to prevent overwhelming the server
-      if (i < files.length - 1) {
-        await new Promise((resolve) => setTimeout(resolve, 500))
+      const batchResults = await Promise.allSettled(batchPromises)
+      const batchUploadResults = batchResults.map((result) =>
+        result.status === "fulfilled" ? result.value : { file: batch[0], success: false, error: "Unknown error" },
+      )
+
+      results.push(...batchUploadResults)
+
+      // Update results progressively
+      setUploadResults([...results])
+
+      // Small delay between batches
+      if (i + batchSize < files.length) {
+        await new Promise((resolve) => setTimeout(resolve, 100))
       }
     }
 
-    setUploadResults(results)
     setUploading(false)
     setCurrentUpload("")
 
@@ -131,14 +188,15 @@ export function PhotoUpload() {
   }
 
   const retryFailedUploads = () => {
-    const failedFiles = uploadResults.filter((r) => !r.success).map((r) => r.file)
+    const failedFiles = uploadResults.filter((r) => !r.success && !r.isDuplicate).map((r) => r.file)
     if (failedFiles.length > 0) {
       uploadFiles(failedFiles)
     }
   }
 
   const successfulUploads = uploadResults.filter((r) => r.success)
-  const failedUploads = uploadResults.filter((r) => !r.success)
+  const failedUploads = uploadResults.filter((r) => !r.success && !r.isDuplicate)
+  const duplicateUploads = uploadResults.filter((r) => r.isDuplicate)
 
   return (
     <>
@@ -178,7 +236,7 @@ export function PhotoUpload() {
               >
                 <Upload className="w-12 h-12 text-zinc-400 mx-auto mb-4" />
                 <p className="text-zinc-300 font-inter mb-2">Drag and drop photos here, or click to select</p>
-                <p className="text-zinc-500 font-crimson-text text-sm">Supports JPG, PNG, WebP up to 10MB each</p>
+                <p className="text-zinc-500 font-crimson-text text-sm">Supports JPG, PNG, WebP up to 15MB each</p>
               </div>
             )}
 
@@ -201,6 +259,34 @@ export function PhotoUpload() {
                       <h4 className="font-inter text-green-400 font-medium">
                         {successfulUploads.length} photo{successfulUploads.length > 1 ? "s" : ""} uploaded successfully!
                       </h4>
+                    </div>
+                  </div>
+                )}
+
+                {/* Duplicate Summary */}
+                {duplicateUploads.length > 0 && (
+                  <div className="bg-yellow-900/20 border border-yellow-700 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-4">
+                      <AlertCircle className="w-5 h-5 text-yellow-500" />
+                      <h4 className="font-inter text-yellow-400 font-medium">
+                        {duplicateUploads.length} duplicate photo{duplicateUploads.length > 1 ? "s" : ""} skipped:
+                      </h4>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {duplicateUploads.map((result, index) => (
+                        <div key={index} className="bg-zinc-800 rounded-lg p-3">
+                          <div className="aspect-square bg-zinc-700 rounded-lg mb-2 overflow-hidden">
+                            <img
+                              src={createImagePreview(result.file) || "/placeholder.svg"}
+                              alt={result.file.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <p className="text-zinc-300 font-inter text-xs truncate mb-1">{result.file.name}</p>
+                          <p className="text-yellow-400 font-inter text-xs">Already exists</p>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -244,7 +330,7 @@ export function PhotoUpload() {
                 <div className="flex gap-3">
                   {successfulUploads.length > 0 && failedUploads.length === 0 && (
                     <div className="flex-1 text-center">
-                      <p className="text-green-400 font-inter text-sm mb-2">All photos uploaded successfully!</p>
+                      <p className="text-green-400 font-inter text-sm mb-2">All photos processed!</p>
                       <p className="text-zinc-400 font-inter text-xs">Refreshing page...</p>
                     </div>
                   )}

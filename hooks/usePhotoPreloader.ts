@@ -12,7 +12,6 @@ interface PreloadState {
   photos: Photo[]
   preloadedUrls: Set<string>
   isPreloading: boolean
-  preloadProgress: number
 }
 
 export function usePhotoPreloader() {
@@ -20,7 +19,6 @@ export function usePhotoPreloader() {
     photos: [],
     preloadedUrls: new Set(),
     isPreloading: false,
-    preloadProgress: 0,
   })
 
   const preloadImage = useCallback((url: string): Promise<void> => {
@@ -35,7 +33,7 @@ export function usePhotoPreloader() {
   const startPreloading = useCallback(async () => {
     if (state.isPreloading) return
 
-    setState((prev) => ({ ...prev, isPreloading: true, preloadProgress: 0 }))
+    setState((prev) => ({ ...prev, isPreloading: true }))
 
     try {
       // Fetch photo list
@@ -47,9 +45,9 @@ export function usePhotoPreloader() {
 
       setState((prev) => ({ ...prev, photos }))
 
-      // Preload first 12 images in batches of 3 for better performance
+      // Preload first 12 images in batches of 4 for better performance
       const imagesToPreload = photos.slice(0, 12)
-      const batchSize = 3
+      const batchSize = 4
       const preloadedUrls = new Set<string>()
 
       for (let i = 0; i < imagesToPreload.length; i += batchSize) {
@@ -69,17 +67,14 @@ export function usePhotoPreloader() {
 
         await Promise.allSettled(batchPromises)
 
-        // Update progress
-        const progress = Math.min(((i + batchSize) / imagesToPreload.length) * 100, 100)
         setState((prev) => ({
           ...prev,
           preloadedUrls: new Set([...prev.preloadedUrls, ...preloadedUrls]),
-          preloadProgress: progress,
         }))
 
-        // Small delay between batches to prevent overwhelming the browser
+        // Small delay between batches
         if (i + batchSize < imagesToPreload.length) {
-          await new Promise((resolve) => setTimeout(resolve, 200))
+          await new Promise((resolve) => setTimeout(resolve, 100))
         }
       }
     } catch (error) {
@@ -93,7 +88,6 @@ export function usePhotoPreloader() {
     photos: state.photos,
     preloadedUrls: state.preloadedUrls,
     isPreloading: state.isPreloading,
-    preloadProgress: state.preloadProgress,
     startPreloading,
   }
 }

@@ -13,7 +13,7 @@ export default function Portfolio() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   // Start preloading photos immediately
-  const { photos, preloadedUrls, isPreloading, preloadProgress, startPreloading } = usePhotoPreloader()
+  const { photos, preloadedUrls, startPreloading } = usePhotoPreloader()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -99,16 +99,7 @@ export default function Portfolio() {
           <section className="px-8 py-20 max-w-7xl mx-auto">
             <div className="flex items-center justify-between mb-12">
               <h2 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500">Photos</h2>
-              <div className="flex items-center gap-4">
-                {/* Preload progress indicator */}
-                {isPreloading && (
-                  <div className="flex items-center gap-2 text-zinc-400 text-sm">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                    <span>Loading photos... {Math.round(preloadProgress)}%</span>
-                  </div>
-                )}
-                <PhotoUpload />
-              </div>
+              <PhotoUpload existingPhotos={photos} />
             </div>
             <PhotoGallery preloadedPhotos={photos} preloadedUrls={preloadedUrls} />
           </section>
@@ -279,16 +270,6 @@ export default function Portfolio() {
                         </a>
                       </div>
                     </div>
-
-                    {/* Preload indicator in sidebar */}
-                    {isPreloading && (
-                      <div className="border-t border-zinc-800 pt-6">
-                        <div className="flex items-center gap-2 text-zinc-500 text-xs">
-                          <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                          <span>Preloading photos... {Math.round(preloadProgress)}%</span>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>

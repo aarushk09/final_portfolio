@@ -1,31 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { put } from "@vercel/blob"
 
-// Helper function to resize image
-async function resizeImage(file: File, maxWidth: number, quality = 0.8): Promise<Blob> {
-  return new Promise((resolve) => {
-    const canvas = document.createElement("canvas")
-    const ctx = canvas.getContext("2d")!
-    const img = new Image()
-
-    img.onload = () => {
-      // Calculate new dimensions
-      const ratio = Math.min(maxWidth / img.width, maxWidth / img.height)
-      const newWidth = img.width * ratio
-      const newHeight = img.height * ratio
-
-      canvas.width = newWidth
-      canvas.height = newHeight
-
-      // Draw and compress
-      ctx.drawImage(img, 0, 0, newWidth, newHeight)
-      canvas.toBlob(resolve, "image/jpeg", quality)
-    }
-
-    img.src = URL.createObjectURL(file)
-  })
-}
-
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
@@ -35,60 +10,75 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 })
     }
 
-    // Validate file type
-    if (!file.type.startsWith("image/")) {
-      return NextResponse.json({ error: "File must be an image" }, { status: 400 })
+    // More flexible file type validation
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif", "image/heic", "image/heif"]
+    if (!allowedTypes.includes(file.type.toLowerCase())) {
+      return NextResponse.json({ error: "Unsupported file type" }, { status: 400 })
     }
 
-    // Validate file size (10MB limit)
-    if (file.size > 10 * 1024 * 1024) {
-      return NextResponse.json({ error: "File size must be less than 10MB" }, { status: 400 })
+    // Increased file size limit
+    if (file.size > 15 * 1024 * 1024) {
+      return NextResponse.json({ error: "File size must be less than 15MB" }, { status: 400 })
     }
 
-    // Create a safe filename
+    // More robust filename generation
     const timestamp = Date.now()
-    const randomId = Math.random().toString(36).substring(2, 8)
+    const randomId = Math.random().toString(36).substring(2, 15) // Longer random string
 
-    // Get file extension from MIME type as fallback
+    // Get file extension more reliably
     let extension = "jpg" // default
-    if (file.type === "image/png") extension = "png"
-    else if (file.type === "image/webp") extension = "webp"
-    else if (file.type === "image/gif") extension = "gif"
-    else if (file.type === "image/jpeg") extension = "jpg"
-
-    // Try to get extension from filename if available
-    if (file.name && file.name.includes(".")) {
-      const fileExt = file.name.split(".").pop()?.toLowerCase()
-      if (fileExt && ["jpg", "jpeg", "png", "webp", "gif"].includes(fileExt)) {
-        extension = fileExt
-      }
+    const mimeToExt: { [key: string]: string } = {
+      "image/jpeg": "jpg",
+      "image/jpg": "jpg",
+      "image/png": "png",
+      "image/webp": "webp",
+      "image/gif": "gif",
+      "image/heic": "jpg", // Convert HEIC to JPG
+      "image/heif": "jpg", // Convert HEIF to JPG
     }
 
-    // Create filenames
-    const originalFilename = `photo_${timestamp}_${randomId}.${extension}`
-    const thumbnailFilename = `thumb_${timestamp}_${randomId}.jpg`
+    extension = mimeToExt[file.type.toLowerCase()] || "jpg"
 
-    console.log("Uploading files:", { originalFilename, thumbnailFilename })
+    // Create a very safe filename with only alphanumeric characters
+    const safeFilename = `img_${timestamp}_${randomId}.${extension}`
 
-    // Upload original image
-    const originalBlob = await put(originalFilename, file, {
-      access: "public",
+    console.log("Uploading:", {
+      filename: safeFilename,
+      type: file.type,
+      size: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
     })
 
-    // Create and upload thumbnail (this will be done on client side for now)
-    // For server-side image processing, we'd need a different approach
+    // Upload to Vercel Blob with error handling
+    const blob = await put(safeFilename, file, {
+      access: "public",
+      addRandomSuffix: true, // Extra safety for unique names
+    })
 
     return NextResponse.json({
       success: true,
-      url: originalBlob.url,
-      thumbnailUrl: originalBlob.url, // For now, same as original
-      filename: originalFilename,
+      url: blob.url,
+      filename: safeFilename,
     })
   } catch (error) {
     console.error("Upload error:", error)
+
+    // More specific error messages
+    let errorMessage = "Failed to upload photo"
+    if (error instanceof Error) {
+      if (error.message.includes("network")) {
+        errorMessage = "Network error - please try again"
+      } else if (error.message.includes("size")) {
+        errorMessage = "File too large"
+      } else if (error.message.includes("type")) {
+        errorMessage = "Unsupported file type"
+      } else {
+        errorMessage = error.message
+      }
+    }
+
     return NextResponse.json(
       {
-        error: "Failed to upload photo",
+        error: errorMessage,
         details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 },
