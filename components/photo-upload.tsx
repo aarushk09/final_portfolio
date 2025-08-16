@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useRef } from "react"
-import { Upload, X, Check, Loader2, AlertCircle } from "lucide-react"
+import { Upload, X, Check, Loader2, AlertCircle, ExternalLink } from "lucide-react"
 
 interface Photo {
   id: string
@@ -17,6 +17,7 @@ interface UploadResult {
   url?: string
   error?: string
   isDuplicate?: boolean
+  isServiceError?: boolean
 }
 
 interface PhotoUploadProps {
@@ -173,6 +174,7 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
                   file: item.file,
                   success: false,
                   error: data.error || "Upload failed",
+                  isServiceError: data.isServiceError || false,
                 }
               }
             } catch (error) {
@@ -263,6 +265,7 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
   const successfulUploads = uploadResults.filter((r) => r.success)
   const failedUploads = uploadResults.filter((r) => !r.success && !r.isDuplicate)
   const duplicateUploads = uploadResults.filter((r) => r.isDuplicate)
+  const serviceErrors = uploadResults.filter((r) => r.isServiceError)
 
   return (
     <>
@@ -287,6 +290,35 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
             {error && (
               <div className="mb-4 p-3 bg-red-900/20 border border-red-700 rounded-lg">
                 <p className="text-red-400 font-inter text-sm">{error}</p>
+              </div>
+            )}
+
+            {/* Service Error Alert */}
+            {serviceErrors.length > 0 && (
+              <div className="mb-4 p-4 bg-orange-900/20 border border-orange-700 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <h4 className="font-inter text-orange-400 font-medium mb-2">Storage Service Issue</h4>
+                    <p className="text-orange-300 font-inter text-sm mb-3">
+                      The Vercel Blob storage service appears to be suspended. This is likely due to:
+                    </p>
+                    <ul className="text-orange-300 font-inter text-sm space-y-1 mb-3 ml-4">
+                      <li>• Billing or payment issues</li>
+                      <li>• Storage quota exceeded</li>
+                      <li>• Account suspension</li>
+                    </ul>
+                    <a
+                      href="https://vercel.com/dashboard"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-orange-400 hover:text-orange-300 font-inter text-sm underline"
+                    >
+                      Check Vercel Dashboard
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -387,12 +419,14 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
                       ))}
                     </div>
 
-                    <button
-                      onClick={retryFailedUploads}
-                      className="mt-4 w-full bg-red-600 hover:bg-red-700 text-white font-inter py-2 px-4 rounded-lg transition-colors"
-                    >
-                      Retry Failed Uploads
-                    </button>
+                    {serviceErrors.length === 0 && (
+                      <button
+                        onClick={retryFailedUploads}
+                        className="mt-4 w-full bg-red-600 hover:bg-red-700 text-white font-inter py-2 px-4 rounded-lg transition-colors"
+                      >
+                        Retry Failed Uploads
+                      </button>
+                    )}
                   </div>
                 )}
 

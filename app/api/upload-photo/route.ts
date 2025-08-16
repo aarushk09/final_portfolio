@@ -71,10 +71,14 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Upload error:", error)
 
-    // More specific error messages
+    // Handle specific Vercel Blob errors
     let errorMessage = "Failed to upload photo"
     if (error instanceof Error) {
-      if (error.message.includes("network")) {
+      if (error.message.includes("suspended")) {
+        errorMessage = "Storage service suspended - please contact support"
+      } else if (error.message.includes("quota")) {
+        errorMessage = "Storage quota exceeded - please free up space"
+      } else if (error.message.includes("network")) {
         errorMessage = "Network error - please try again"
       } else if (error.message.includes("size")) {
         errorMessage = "File too large"
@@ -89,6 +93,9 @@ export async function POST(request: NextRequest) {
       {
         error: errorMessage,
         details: error instanceof Error ? error.message : "Unknown error",
+        isServiceError:
+          error instanceof Error &&
+          (error.message.includes("suspended") || error.message.includes("quota") || error.message.includes("billing")),
       },
       { status: 500 },
     )
