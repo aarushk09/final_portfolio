@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter, usePathname } from "next/navigation"
 import { SpotifyWidget } from "@/components/spotify-widget"
 
 interface NavigationProps {
@@ -12,6 +13,8 @@ interface NavigationProps {
 
 export function Navigation({ activeTab, onTabChange, onSidebarToggle, showSpotifyInSidebar }: NavigationProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const router = useRouter()
+  const pathname = usePathname()
 
   const toggleMenu = () => {
     const newState = !isOpen
@@ -19,11 +22,20 @@ export function Navigation({ activeTab, onTabChange, onSidebarToggle, showSpotif
     onSidebarToggle(newState)
   }
 
-  const handleTabChange = (tab: string) => {
-    onTabChange(tab)
+  const handleNavigation = (path: string) => {
+    router.push(path)
     setIsOpen(false) // Close menu after selection
     onSidebarToggle(false)
   }
+
+  // Determine active tab based on current pathname
+  const getCurrentTab = () => {
+    if (pathname === "/projects") return "projects"
+    if (pathname === "/photos") return "photos"
+    return "portfolio"
+  }
+
+  const currentTab = getCurrentTab()
 
   return (
     <>
@@ -65,22 +77,22 @@ export function Navigation({ activeTab, onTabChange, onSidebarToggle, showSpotif
         <div className="pt-24 px-8 h-full flex flex-col">
           <div className="space-y-4 flex-1">
             {[
-              { id: "portfolio", label: "Portfolio", description: "About me & experience" },
-              { id: "projects", label: "Projects", description: "Technical work & innovations" },
-              { id: "photos", label: "Photos", description: "Personal moments & travels" },
+              { id: "portfolio", label: "Portfolio", description: "About me & experience", path: "/" },
+              { id: "projects", label: "Projects", description: "Technical work & innovations", path: "/projects" },
+              { id: "photos", label: "Photos", description: "Personal moments & travels", path: "/photos" },
             ].map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => handleTabChange(tab.id)}
+                onClick={() => handleNavigation(tab.path)}
                 className={`group w-full text-left p-6 rounded-2xl transition-all duration-300 ${
-                  activeTab === tab.id
+                  currentTab === tab.id
                     ? "bg-white/10 backdrop-blur-sm border border-white/20"
                     : "bg-transparent hover:bg-white/5 border border-transparent"
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-inter text-xl font-medium text-white">{tab.label}</h3>
-                  {activeTab === tab.id && <div className="w-2 h-2 bg-white rounded-full" />}
+                  {currentTab === tab.id && <div className="w-2 h-2 bg-white rounded-full" />}
                 </div>
                 <p className="font-crimson-text text-sm text-zinc-400">{tab.description}</p>
               </button>

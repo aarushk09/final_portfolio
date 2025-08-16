@@ -3,10 +3,7 @@
 import { useState, useEffect } from "react"
 import { SpotifyWidget } from "@/components/spotify-widget"
 import { Navigation } from "@/components/navigation"
-import { PhotoUpload } from "@/components/photo-upload"
 import { PhotoGallery } from "@/components/photo-gallery"
-import { DeleteAllPhotos } from "@/components/delete-all-photos"
-import { StorageSetup } from "@/components/storage-setup"
 import { usePhotoPreloader } from "@/hooks/usePhotoPreloader"
 
 export default function Portfolio() {
@@ -102,9 +99,11 @@ export default function Portfolio() {
             <div className="flex items-center justify-between mb-12">
               <h2 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500">Photos</h2>
               <div className="flex items-center gap-4">
+                {/* Commented out for now - uncomment when needed
                 <StorageSetup />
                 <PhotoUpload existingPhotos={photos} />
                 {photos.length > 0 && <DeleteAllPhotos photoCount={photos.length} />}
+                */}
               </div>
             </div>
             <PhotoGallery preloadedPhotos={photos} preloadedUrls={preloadedUrls} />
@@ -194,86 +193,88 @@ export default function Portfolio() {
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Right Column - Photo & Info */}
-                <div className="lg:col-span-1 space-y-12">
-                  <div>
-                    <img
-                      src="/images/aarush-photo.png"
-                      alt="Aarush in Switzerland with mountains in background"
-                      className="w-full aspect-square object-cover object-bottom rounded-2xl"
-                    />
-                  </div>
-
-                  <div className="space-y-8">
-                    {/* Education Section */}
+                  {/* Right Column - Photo & Info */}
+                  <div className="lg:col-span-1 space-y-12">
                     <div>
-                      <h3 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-4">Education</h3>
-                      <div className="space-y-4">
-                        <div>
-                          <h4 className="font-inter text-lg text-white mb-1">
-                            Georgia State University Perimeter College
-                          </h4>
-                          <p className="font-crimson-text text-base text-zinc-400">
-                            Dual Enrollment, English Language and Literature
-                          </p>
-                          <span className="font-inter text-xs text-zinc-500 uppercase tracking-wide">
-                            May 2024 - July 2024
-                          </span>
-                        </div>
-                        <div>
-                          <h4 className="font-inter text-lg text-white mb-1">South Forsyth High School</h4>
-                          <span className="font-inter text-xs text-zinc-500 uppercase tracking-wide">2022</span>
+                      <img
+                        src="/images/aarush-photo.png"
+                        alt="Aarush in Switzerland with mountains in background"
+                        className="w-full aspect-square object-cover object-bottom rounded-2xl"
+                      />
+                    </div>
+
+                    <div className="space-y-8">
+                      {/* Education Section */}
+                      <div>
+                        <h3 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-4">Education</h3>
+                        <div className="space-y-4">
+                          <div>
+                            <h4 className="font-inter text-lg text-white mb-1">
+                              Georgia State University Perimeter College
+                            </h4>
+                            <p className="font-crimson-text text-base text-zinc-400">
+                              Dual Enrollment, English Language and Literature
+                            </p>
+                            <span className="font-inter text-xs text-zinc-500 uppercase tracking-wide">
+                              May 2024 - July 2024
+                            </span>
+                          </div>
+                          <div>
+                            <h4 className="font-inter text-lg text-white mb-1">South Forsyth High School</h4>
+                            <span className="font-inter text-xs text-zinc-500 uppercase tracking-wide">2022</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div>
-                      <h3 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-4">Skills</h3>
-                      <p className="font-crimson-text text-lg text-zinc-300 leading-relaxed">
-                        Machine Learning
-                        <br />
-                        Arduino
-                        <br />
-                        Mechanical Engineering
-                      </p>
-                    </div>
+                      <div>
+                        <h3 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-4">Skills</h3>
+                        <p className="font-crimson-text text-lg text-zinc-300 leading-relaxed">
+                          Machine Learning
+                          <br />
+                          Arduino
+                          <br />
+                          Mechanical Engineering
+                        </p>
+                      </div>
 
-                    <div>
-                      <h3 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-4">Programming</h3>
-                      <p className="font-crimson-text text-lg text-zinc-300 leading-relaxed">
-                        C#
-                        <br />
-                        Python
-                        <br />
-                        SQL
-                        <br />
-                        JavaScript
-                      </p>
-                    </div>
+                      <div>
+                        <h3 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-4">
+                          Programming
+                        </h3>
+                        <p className="font-crimson-text text-lg text-zinc-300 leading-relaxed">
+                          C#
+                          <br />
+                          Python
+                          <br />
+                          SQL
+                          <br />
+                          JavaScript
+                        </p>
+                      </div>
 
-                    <div>
-                      <h3 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-4">Contact</h3>
-                      <div className="space-y-3">
-                        <a
-                          href="mailto:aarushkute8@gmail.com"
-                          className="block font-crimson-text text-lg text-zinc-300 hover:text-white transition-colors"
-                        >
-                          aarushkute8@gmail.com
-                        </a>
-                        <a
-                          href="https://www.linkedin.com/in/aarushkute-1639a525b"
-                          className="block font-crimson-text text-lg text-zinc-300 hover:text-white transition-colors"
-                        >
-                          LinkedIn
-                        </a>
-                        <a
-                          href="https://portfolio-v2f-two.vercel.app/"
-                          className="block font-crimson-text text-lg text-zinc-300 hover:text-white transition-colors"
-                        >
-                          Personal Website
-                        </a>
+                      <div>
+                        <h3 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-4">Contact</h3>
+                        <div className="space-y-3">
+                          <a
+                            href="mailto:aarushkute8@gmail.com"
+                            className="block font-crimson-text text-lg text-zinc-300 hover:text-white transition-colors"
+                          >
+                            aarushkute8@gmail.com
+                          </a>
+                          <a
+                            href="https://www.linkedin.com/in/aarushkute-1639a525b"
+                            className="block font-crimson-text text-lg text-zinc-300 hover:text-white transition-colors"
+                          >
+                            LinkedIn
+                          </a>
+                          <a
+                            href="https://portfolio-v2f-two.vercel.app/"
+                            className="block font-crimson-text text-lg text-zinc-300 hover:text-white transition-colors"
+                          >
+                            Personal Website
+                          </a>
+                        </div>
                       </div>
                     </div>
                   </div>
