@@ -1,5 +1,24 @@
 import { type NextRequest, NextResponse } from "next/server"
 
+// Sanitize filename to remove special characters that Supabase doesn't like
+function sanitizeFileName(name: string): string {
+  return name
+    .replace(/[^a-zA-Z0-9._-]/g, "_") // Replace special chars with underscore
+    .replace(/_{2,}/g, "_") // Replace multiple underscores with single
+    .replace(/^_+|_+$/g, "") // Remove leading/trailing underscores
+    .toLowerCase()
+}
+
+// Sanitize photo ID to ensure it's safe for filenames
+function sanitizePhotoId(photoId: string): string {
+  return photoId
+    .replace(/[^a-zA-Z0-9]/g, "_") // Replace non-alphanumeric with underscore
+    .replace(/_{2,}/g, "_") // Replace multiple underscores with single
+    .replace(/^_+|_+$/g, "") // Remove leading/trailing underscores
+    .toUpperCase()
+    .substring(0, 20) // Limit length
+}
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
@@ -48,13 +67,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "File size must be less than 10MB" }, { status: 400 })
     }
 
-    // Get file extension
-    const extension = file.name.split(".").pop()?.toLowerCase() || "jpg"
-    const timestamp = Date.now()
-    const fileName = `photos/img_${timestamp}_${photoId}.${extension}`
+    // Sanitize inputs to prevent pattern errors
+    const originalName = file.name
+    const sanitizedOriginalName = sanitizeFileName(originalName)
+    const sanitizedPhotoId = sanitizePhotoId(photoId)
 
-    console.log("Uploading via REST API:", {
+    // Get file extension safely
+    const extension = sanitizedOriginalName.split(".").pop()?.toLowerCase() || "jpg"
+    const timestamp = Date.now()
+
+    // Create a safe filename that Supabase will accept
+    const fileName = `img_${timestamp}_${sanitizedPhotoId}.${extension}`
+    const fullPath = `photos/${fileName}`
+
+    console.log("Sanitized upload info:", {
+      originalName,
+      sanitizedOriginalName,
+      originalPhotoId: photoId,
+      sanitizedPhotoId,
       fileName,
+      fullPath,
       fileSize: file.size,
       fileType: file.type,
     })
@@ -63,7 +95,9 @@ export async function POST(request: NextRequest) {
     const fileBuffer = await file.arrayBuffer()
 
     // Upload directly to Supabase Storage REST API
-    const uploadUrl = `${supabaseUrl}/storage/v1/object/portfolio-photos/${fileName}`
+    const uploadUrl = `${supabaseUrl}/storage/v1/object/portfolio-photos/${fullPath}`
+
+    console.log("Upload URL:", uploadUrl)
 
     const uploadResponse = await fetch(uploadUrl, {
       method: "POST",
@@ -71,6 +105,7 @@ export async function POST(request: NextRequest) {
         Authorization: `Bearer ${serviceRoleKey}`,
         "Content-Type": file.type,
         "x-upsert": "false",
+        "cache-control": "3600",
       },
       body: fileBuffer,
     })
@@ -81,6 +116,8 @@ export async function POST(request: NextRequest) {
         status: uploadResponse.status,
         statusText: uploadResponse.statusText,
         error: errorText,
+        url: uploadUrl,
+        fileName: fullPath,
       })
 
       if (uploadResponse.status === 404) {
@@ -105,6 +142,17 @@ export async function POST(request: NextRequest) {
         )
       }
 
+      if (uploadResponse.status === 400 && errorText.includes("pattern")) {
+        return NextResponse.json(
+          {
+            error: "Invalid filename pattern",
+            details: `Filename "${fullPath}" contains invalid characters. Original: "${originalName}"`,
+            isServiceError: true,
+          },
+          { status: 400 },
+        )
+      }
+
       return NextResponse.json(
         {
           error: "Upload failed",
@@ -119,13 +167,14 @@ export async function POST(request: NextRequest) {
     console.log("Upload successful:", uploadResult)
 
     // Get public URL
-    const publicUrl = `${supabaseUrl}/storage/v1/object/public/portfolio-photos/${fileName}`
+    const publicUrl = `${supabaseUrl}/storage/v1/object/public/portfolio-photos/${fullPath}`
 
     return NextResponse.json({
       success: true,
       url: publicUrl,
-      fileName: fileName,
-      photoId: photoId,
+      fileName: fullPath,
+      photoId: sanitizedPhotoId,
+      originalName: originalName,
     })
   } catch (error) {
     console.error("Upload error:", error)
