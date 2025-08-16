@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react"
 import Image from "next/image"
-import { Loader2, Trash2, X, ChevronLeft, ChevronRight } from "lucide-react"
+import { Loader2, X, ChevronLeft, ChevronRight } from "lucide-react"
 
 interface Photo {
   id: string
@@ -96,7 +96,8 @@ function PhotoItem({ photo, index, onOpenLightbox, onDelete, deleting, isPreload
         </div>
       )}
 
-      {/* Delete button */}
+      {/* Delete button - commented out for public view */}
+      {/*
       <button
         onClick={(e) => {
           e.stopPropagation()
@@ -111,6 +112,7 @@ function PhotoItem({ photo, index, onOpenLightbox, onDelete, deleting, isPreload
           <Trash2 className="w-4 h-4 text-white" />
         )}
       </button>
+      */}
     </div>
   )
 }
@@ -325,6 +327,8 @@ export function PhotoGallery({ preloadedPhotos = [], preloadedUrls = new Set() }
             </span>
           </div>
 
+          {/* Delete button in lightbox - commented out for public view */}
+          {/*
           <button
             onClick={() => deletePhoto(photos[selectedPhoto].id)}
             disabled={deleting === photos[selectedPhoto].id}
@@ -336,6 +340,7 @@ export function PhotoGallery({ preloadedPhotos = [], preloadedUrls = new Set() }
               <Trash2 className="w-5 h-5 text-white" />
             )}
           </button>
+          */}
         </div>
       )}
     </>

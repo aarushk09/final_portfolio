@@ -1,355 +1,325 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { ExternalLink, Github, Mail, MapPin, Calendar, Camera, Code, Briefcase } from "lucide-react"
+import Image from "next/image"
 import { SpotifyWidget } from "@/components/spotify-widget"
-import { Navigation } from "@/components/navigation"
 import { PhotoGallery } from "@/components/photo-gallery"
-import { usePhotoPreloader } from "@/hooks/usePhotoPreloader"
+import { StorageSetup } from "@/components/storage-setup"
+import { PhotoUpload } from "@/components/photo-upload"
+import { DeleteAllPhotos } from "@/components/delete-all-photos"
+import { Navigation } from "@/components/navigation"
 
 export default function Portfolio() {
-  const [activeTab, setActiveTab] = useState("portfolio")
-  const [showSpotify, setShowSpotify] = useState(true)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-
-  // Start preloading photos immediately
-  const { photos, preloadedUrls, startPreloading } = usePhotoPreloader()
+  const [activeTab, setActiveTab] = useState("about")
+  const [isScrolled, setIsScrolled] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollY = window.scrollY
-      // Hide Spotify widget when scrolled down more than 100px
-      setShowSpotify(scrollY < 100)
+      setIsScrolled(window.scrollY > 50)
     }
-
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  // Start preloading photos as soon as the page loads
-  useEffect(() => {
-    // Small delay to let the page load first, then start preloading
-    const timer = setTimeout(() => {
-      startPreloading()
-    }, 1000) // 1 second delay
+  const projects = [
+    {
+      title: "E-Commerce Platform",
+      description:
+        "A full-stack e-commerce solution built with Next.js, featuring real-time inventory management and secure payment processing.",
+      tech: ["Next.js", "TypeScript", "Stripe", "PostgreSQL"],
+      github: "https://github.com",
+      demo: "https://demo.com",
+      image: "/placeholder.svg?height=200&width=300",
+    },
+    {
+      title: "Task Management App",
+      description:
+        "A collaborative task management application with real-time updates, drag-and-drop functionality, and team collaboration features.",
+      tech: ["React", "Node.js", "Socket.io", "MongoDB"],
+      github: "https://github.com",
+      demo: "https://demo.com",
+      image: "/placeholder.svg?height=200&width=300",
+    },
+    {
+      title: "Weather Dashboard",
+      description:
+        "A responsive weather dashboard that provides detailed forecasts, interactive maps, and location-based weather alerts.",
+      tech: ["Vue.js", "Express", "OpenWeather API", "Chart.js"],
+      github: "https://github.com",
+      demo: "https://demo.com",
+      image: "/placeholder.svg?height=200&width=300",
+    },
+  ]
 
-    return () => clearTimeout(timer)
-  }, [startPreloading])
-
-  const renderContent = () => {
-    switch (activeTab) {
-      case "projects":
-        return (
-          <section className="px-8 py-20 max-w-7xl mx-auto">
-            <h2 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-12">Projects</h2>
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="group p-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300">
-                <h3 className="font-inter text-2xl text-white mb-4">Evion ML Platform</h3>
-                <p className="font-crimson-text text-lg text-zinc-400 leading-relaxed mb-6">
-                  Agricultural ML infrastructure serving 500+ farms with 95% accuracy models trained on 30,000+ images.
-                </p>
-                <div className="flex gap-2 flex-wrap">
-                  <span className="px-3 py-1 text-xs bg-zinc-800 text-zinc-300 rounded-full">Python</span>
-                  <span className="px-3 py-1 text-xs bg-zinc-800 text-zinc-300 rounded-full">TensorFlow</span>
-                  <span className="px-3 py-1 text-xs bg-zinc-800 text-zinc-300 rounded-full">Computer Vision</span>
-                </div>
-              </div>
-
-              <div className="group p-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300">
-                <h3 className="font-inter text-2xl text-white mb-4">DailySAT Platform</h3>
-                <p className="font-crimson-text text-lg text-zinc-400 leading-relaxed mb-6">
-                  Gamified SAT preparation platform with interactive challenges and personalized learning paths.
-                </p>
-                <div className="flex gap-2 flex-wrap">
-                  <span className="px-3 py-1 text-xs bg-zinc-800 text-zinc-300 rounded-full">React</span>
-                  <span className="px-3 py-1 text-xs bg-zinc-800 text-zinc-300 rounded-full">Node.js</span>
-                  <span className="px-3 py-1 text-xs bg-zinc-800 text-zinc-300 rounded-full">PostgreSQL</span>
-                </div>
-              </div>
-
-              <div className="group p-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300">
-                <h3 className="font-inter text-2xl text-white mb-4">Study Bubbly</h3>
-                <p className="font-crimson-text text-lg text-zinc-400 leading-relaxed mb-6">
-                  Educational platform helping 250,000+ students worldwide with AP study materials and resources.
-                </p>
-                <div className="flex gap-2 flex-wrap">
-                  <span className="px-3 py-1 text-xs bg-zinc-800 text-zinc-300 rounded-full">Next.js</span>
-                  <span className="px-3 py-1 text-xs bg-zinc-800 text-zinc-300 rounded-full">TypeScript</span>
-                  <span className="px-3 py-1 text-xs bg-zinc-800 text-zinc-300 rounded-full">MongoDB</span>
-                </div>
-              </div>
-
-              <div className="group p-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300">
-                <h3 className="font-inter text-2xl text-white mb-4">WebGenius 501(c)(3)</h3>
-                <p className="font-crimson-text text-lg text-zinc-400 leading-relaxed mb-6">
-                  Non-profit creating free websites for organizations. 100+ projects completed, $300k+ funding raised.
-                </p>
-                <div className="flex gap-2 flex-wrap">
-                  <span className="px-3 py-1 text-xs bg-zinc-800 text-zinc-300 rounded-full">WordPress</span>
-                  <span className="px-3 py-1 text-xs bg-zinc-800 text-zinc-300 rounded-full">PHP</span>
-                  <span className="px-3 py-1 text-xs bg-zinc-800 text-zinc-300 rounded-full">MySQL</span>
-                </div>
-              </div>
-            </div>
-          </section>
-        )
-
-      case "photos":
-        return (
-          <section className="px-8 py-20 max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-12">
-              <h2 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500">Photos</h2>
-              <div className="flex items-center gap-4">
-                {/* Commented out for now - uncomment when needed
-                <StorageSetup />
-                <PhotoUpload existingPhotos={photos} />
-                {photos.length > 0 && <DeleteAllPhotos photoCount={photos.length} />}
-                */}
-              </div>
-            </div>
-            <PhotoGallery preloadedPhotos={photos} preloadedUrls={preloadedUrls} />
-          </section>
-        )
-
-      default:
-        return (
-          <>
-            {/* Hero Section */}
-            <section className="px-8 py-20 max-w-7xl mx-auto">
-              <div className="grid lg:grid-cols-3 gap-16 items-start">
-                {/* Left Column - Main Content */}
-                <div className="lg:col-span-2 space-y-16">
-                  <div className="pt-5">
-                    <h1 className="font-inter font-light text-6xl md:text-8xl lg:text-9xl text-white mb-8 leading-[0.9] tracking-tight">
-                      hey, i'm aarush
-                    </h1>
-                    <p className="font-crimson-text text-xl md:text-2xl text-zinc-300 leading-relaxed max-w-3xl">
-                      I am passionate about artificial intelligence and machine learning, with a keen interest in
-                      Arduino projects. In my free time, I enjoy playing the piano and tennis. My career goal is to work
-                      in the AI/ML field while pursuing entrepreneurial ventures.
-                    </p>
-                  </div>
-
-                  {/* Experience */}
-                  <div>
-                    <h2 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-12">Experience</h2>
-                    <div className="space-y-12">
-                      <div className="group">
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3">
-                          <h3 className="font-inter text-2xl text-white group-hover:text-zinc-200 transition-colors">
-                            Evion
-                          </h3>
-                          <span className="font-inter text-sm text-zinc-500 uppercase tracking-wide">
-                            Co-Founder • Jan 2025 - Present
-                          </span>
-                        </div>
-                        <p className="font-crimson-text text-lg text-zinc-400 leading-relaxed">
-                          Building ML infrastructure for agriculture. Working with 500+ farms, trained models on 30,000+
-                          images achieving 95% accuracy.
-                        </p>
-                      </div>
-
-                      <div className="group">
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3">
-                          <h3 className="font-inter text-2xl text-white group-hover:text-zinc-200 transition-colors">
-                            DailySAT
-                          </h3>
-                          <span className="font-inter text-sm text-zinc-500 uppercase tracking-wide">
-                            Founder & CEO • Aug 2024 - Present
-                          </span>
-                        </div>
-                        <p className="font-crimson-text text-lg text-zinc-400 leading-relaxed">
-                          Transforming SAT prep through gamified learning experiences and interactive challenges.
-                        </p>
-                      </div>
-
-                      <div className="group">
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3">
-                          <h3 className="font-inter text-2xl text-white group-hover:text-zinc-200 transition-colors">
-                            Study Bubbly
-                          </h3>
-                          <span className="font-inter text-sm text-zinc-500 uppercase tracking-wide">
-                            CTO • Sep 2024 - Present
-                          </span>
-                        </div>
-                        <p className="font-crimson-text text-lg text-zinc-400 leading-relaxed">
-                          Platform for AP study materials. Helped 250,000+ students worldwide with curated notes and
-                          educational content.
-                        </p>
-                      </div>
-
-                      <div className="group">
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3">
-                          <h3 className="font-inter text-2xl text-white group-hover:text-zinc-200 transition-colors">
-                            WebGenius 501(c)(3)
-                          </h3>
-                          <span className="font-inter text-sm text-zinc-500 uppercase tracking-wide">
-                            Founder • Jul 2024 - Present
-                          </span>
-                        </div>
-                        <p className="font-crimson-text text-lg text-zinc-400 leading-relaxed">
-                          Non-profit creating free websites for small organizations. 100+ projects completed, clients
-                          raised $300k+ in funding.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right Column - Photo & Info */}
-                  <div className="lg:col-span-1 space-y-12">
-                    <div>
-                      <img
-                        src="/images/aarush-photo.png"
-                        alt="Aarush in Switzerland with mountains in background"
-                        className="w-full aspect-square object-cover object-bottom rounded-2xl"
-                      />
-                    </div>
-
-                    <div className="space-y-8">
-                      {/* Education Section */}
-                      <div>
-                        <h3 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-4">Education</h3>
-                        <div className="space-y-4">
-                          <div>
-                            <h4 className="font-inter text-lg text-white mb-1">
-                              Georgia State University Perimeter College
-                            </h4>
-                            <p className="font-crimson-text text-base text-zinc-400">
-                              Dual Enrollment, English Language and Literature
-                            </p>
-                            <span className="font-inter text-xs text-zinc-500 uppercase tracking-wide">
-                              May 2024 - July 2024
-                            </span>
-                          </div>
-                          <div>
-                            <h4 className="font-inter text-lg text-white mb-1">South Forsyth High School</h4>
-                            <span className="font-inter text-xs text-zinc-500 uppercase tracking-wide">2022</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <h3 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-4">Skills</h3>
-                        <p className="font-crimson-text text-lg text-zinc-300 leading-relaxed">
-                          Machine Learning
-                          <br />
-                          Arduino
-                          <br />
-                          Mechanical Engineering
-                        </p>
-                      </div>
-
-                      <div>
-                        <h3 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-4">
-                          Programming
-                        </h3>
-                        <p className="font-crimson-text text-lg text-zinc-300 leading-relaxed">
-                          C#
-                          <br />
-                          Python
-                          <br />
-                          SQL
-                          <br />
-                          JavaScript
-                        </p>
-                      </div>
-
-                      <div>
-                        <h3 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-4">Contact</h3>
-                        <div className="space-y-3">
-                          <a
-                            href="mailto:aarushkute8@gmail.com"
-                            className="block font-crimson-text text-lg text-zinc-300 hover:text-white transition-colors"
-                          >
-                            aarushkute8@gmail.com
-                          </a>
-                          <a
-                            href="https://www.linkedin.com/in/aarushkute-1639a525b"
-                            className="block font-crimson-text text-lg text-zinc-300 hover:text-white transition-colors"
-                          >
-                            LinkedIn
-                          </a>
-                          <a
-                            href="https://portfolio-v2f-two.vercel.app/"
-                            className="block font-crimson-text text-lg text-zinc-300 hover:text-white transition-colors"
-                          >
-                            Personal Website
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Recognition Section */}
-            <section className="px-8 py-20 max-w-7xl mx-auto border-t border-zinc-800/50">
-              <h2 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-12">Recognition</h2>
-              <div className="grid md:grid-cols-2 gap-12">
-                <div>
-                  <h3 className="font-inter text-xl text-white mb-4">Honors & Awards</h3>
-                  <p className="font-crimson-text text-lg text-zinc-400 leading-relaxed">
-                    8x Consecutive County & State Winner
-                    <br />
-                    HackerRank ProjectEuler+ Achievements
-                    <br />
-                    3x Robotics State Qualifier
-                    <br />
-                    Worlds Championships 2025
-                    <br />
-                    Piano RCM Level 8 Certification
-                    <br />
-                    Presidential Volunteering Award Gold (300 hours)
-                  </p>
-                </div>
-                <div>
-                  <h3 className="font-inter text-xl text-white mb-4">Publications</h3>
-                  <p className="font-crimson-text text-lg text-zinc-400 leading-relaxed">
-                    Neural Network-Enhanced Inventory Forecasting for DDMRP
-                    <br />
-                    Watershed Modeling Using QSWAT for Water Quality Analysis
-                  </p>
-                </div>
-              </div>
-            </section>
-
-            {/* Footer */}
-            <footer className="px-8 py-12 max-w-7xl mx-auto border-t border-zinc-800/50">
-              <p className="font-inter text-sm text-zinc-600">
-                © 2024 Aarush. Building cool stuff from Cumming, Georgia.
-              </p>
-            </footer>
-          </>
-        )
-    }
-  }
+  const skills = [
+    "JavaScript",
+    "TypeScript",
+    "React",
+    "Next.js",
+    "Node.js",
+    "Python",
+    "PostgreSQL",
+    "MongoDB",
+    "AWS",
+    "Docker",
+    "Git",
+    "Figma",
+  ]
 
   return (
-    <main className="min-h-screen relative">
-      {/* Subtle Background */}
-      <div className="fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.02)_0%,transparent_50%)]" />
-        <div
-          className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.1) 1px, transparent 0)`,
-            backgroundSize: "50px 50px",
-          }}
-        />
+    <div className="min-h-screen bg-black text-white">
+      <Navigation />
+      <SpotifyWidget isVisible={true} />
+
+      <div className="container mx-auto px-6 py-12">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4 mb-12 bg-zinc-900/50 border border-zinc-800">
+            <TabsTrigger value="about" className="data-[state=active]:bg-white data-[state=active]:text-black">
+              About
+            </TabsTrigger>
+            <TabsTrigger value="projects" className="data-[state=active]:bg-white data-[state=active]:text-black">
+              Projects
+            </TabsTrigger>
+            <TabsTrigger value="photos" className="data-[state=active]:bg-white data-[state=active]:text-black">
+              Photos
+            </TabsTrigger>
+            <TabsTrigger value="contact" className="data-[state=active]:bg-white data-[state=active]:text-black">
+              Contact
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="about" className="space-y-12">
+            <div className="grid md:grid-cols-2 gap-12 items-start">
+              <div className="space-y-6">
+                <div>
+                  <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+                    Aarush Gupta
+                  </h1>
+                  <p className="text-xl text-zinc-400 mb-6">Full Stack Developer & Creative Technologist</p>
+                  <div className="flex items-center gap-4 text-zinc-500 mb-6">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4" />
+                      <span>San Francisco, CA</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      <span>Available for work</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <p className="text-zinc-300 leading-relaxed">
+                    I'm a passionate full-stack developer with 5+ years of experience building scalable web
+                    applications. I specialize in React, Next.js, and Node.js, with a keen eye for user experience and
+                    performance optimization.
+                  </p>
+                  <p className="text-zinc-300 leading-relaxed">
+                    When I'm not coding, you'll find me exploring new technologies, contributing to open-source
+                    projects, or capturing moments through photography. I believe in creating digital experiences that
+                    are both functional and beautiful.
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-xl font-semibold">Skills & Technologies</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {skills.map((skill) => (
+                      <Badge key={skill} variant="secondary" className="bg-zinc-800 text-zinc-300 hover:bg-zinc-700">
+                        {skill}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-center">
+                <div className="relative">
+                  <div className="w-80 h-96 relative overflow-hidden rounded-2xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-zinc-700">
+                    <Image
+                      src="/images/aarush-photo.png"
+                      alt="Aarush Gupta"
+                      fill
+                      className="object-cover object-center"
+                      priority
+                    />
+                  </div>
+                  <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full opacity-20 blur-xl"></div>
+                  <div className="absolute -top-4 -left-4 w-32 h-32 bg-gradient-to-br from-green-500 to-blue-500 rounded-full opacity-10 blur-xl"></div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="projects" className="space-y-8">
+            <div className="text-center space-y-4">
+              <h2 className="text-3xl md:text-4xl font-bold">Featured Projects</h2>
+              <p className="text-zinc-400 max-w-2xl mx-auto">
+                A collection of projects that showcase my skills in full-stack development, from concept to deployment.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {projects.map((project, index) => (
+                <Card
+                  key={index}
+                  className="bg-zinc-900/50 border-zinc-800 hover:border-zinc-700 transition-all duration-300 group"
+                >
+                  <div className="aspect-video relative overflow-hidden rounded-t-lg">
+                    <Image
+                      src={project.image || "/placeholder.svg"}
+                      alt={project.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                  <CardContent className="p-6 space-y-4">
+                    <h3 className="text-xl font-semibold">{project.title}</h3>
+                    <p className="text-zinc-400 text-sm leading-relaxed">{project.description}</p>
+
+                    <div className="flex flex-wrap gap-2">
+                      {project.tech.map((tech) => (
+                        <Badge key={tech} variant="outline" className="text-xs border-zinc-700 text-zinc-400">
+                          {tech}
+                        </Badge>
+                      ))}
+                    </div>
+
+                    <div className="flex gap-3 pt-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-zinc-700 hover:bg-zinc-800 bg-transparent"
+                        asChild
+                      >
+                        <a href={project.github} target="_blank" rel="noopener noreferrer">
+                          <Github className="w-4 h-4 mr-2" />
+                          Code
+                        </a>
+                      </Button>
+                      <Button size="sm" className="bg-white text-black hover:bg-zinc-200" asChild>
+                        <a href={project.demo} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="w-4 h-4 mr-2" />
+                          Demo
+                        </a>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="photos" className="space-y-8">
+            <div className="text-center space-y-4">
+              <h2 className="text-3xl md:text-4xl font-bold">Photography</h2>
+              <p className="text-zinc-400 max-w-2xl mx-auto">
+                Capturing moments and exploring the world through my lens. A collection of my favorite shots from
+                travels and daily life.
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              <StorageSetup />
+              <PhotoUpload />
+              <DeleteAllPhotos />
+              <PhotoGallery />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="contact" className="space-y-8">
+            <div className="text-center space-y-4">
+              <h2 className="text-3xl md:text-4xl font-bold">Let's Connect</h2>
+              <p className="text-zinc-400 max-w-2xl mx-auto">
+                I'm always interested in new opportunities and collaborations. Feel free to reach out if you'd like to
+                work together!
+              </p>
+            </div>
+
+            <div className="max-w-2xl mx-auto">
+              <Card className="bg-zinc-900/50 border-zinc-800">
+                <CardContent className="p-8 space-y-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <h3 className="text-xl font-semibold flex items-center gap-2">
+                        <Mail className="w-5 h-5" />
+                        Get in Touch
+                      </h3>
+                      <div className="space-y-3 text-zinc-400">
+                        <p>
+                          <strong className="text-white">Email:</strong>
+                          <br />
+                          aarush@example.com
+                        </p>
+                        <p>
+                          <strong className="text-white">Location:</strong>
+                          <br />
+                          San Francisco, CA
+                        </p>
+                        <p>
+                          <strong className="text-white">Response Time:</strong>
+                          <br />
+                          Usually within 24 hours
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h3 className="text-xl font-semibold flex items-center gap-2">
+                        <Code className="w-5 h-5" />
+                        Find Me Online
+                      </h3>
+                      <div className="space-y-3">
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start border-zinc-700 hover:bg-zinc-800 bg-transparent"
+                          asChild
+                        >
+                          <a href="https://github.com" target="_blank" rel="noopener noreferrer">
+                            <Github className="w-4 h-4 mr-2" />
+                            GitHub
+                          </a>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start border-zinc-700 hover:bg-zinc-800 bg-transparent"
+                          asChild
+                        >
+                          <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">
+                            <Briefcase className="w-4 h-4 mr-2" />
+                            LinkedIn
+                          </a>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start border-zinc-700 hover:bg-zinc-800 bg-transparent"
+                          asChild
+                        >
+                          <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">
+                            <Camera className="w-4 h-4 mr-2" />
+                            Instagram
+                          </a>
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-6 border-t border-zinc-800">
+                    <p className="text-center text-zinc-500 text-sm">
+                      Currently open to new opportunities • Available for freelance projects
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
-
-      {/* Only show Spotify widget on portfolio tab */}
-      {activeTab === "portfolio" && <SpotifyWidget isVisible={showSpotify && !sidebarOpen} />}
-
-      <Navigation
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        onSidebarToggle={setSidebarOpen}
-        showSpotifyInSidebar={activeTab === "portfolio"}
-      />
-
-      {renderContent()}
-    </main>
+    </div>
   )
 }
