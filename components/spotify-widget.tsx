@@ -25,6 +25,8 @@ export function SpotifyWidget({ isVisible, inSidebar = false }: SpotifyWidgetPro
   const [localProgress, setLocalProgress] = useState(0)
   const [isMinimized, setIsMinimized] = useState(true) // Start minimized by default
   const [shouldScroll, setShouldScroll] = useState(false)
+  const [isAnimating, setIsAnimating] = useState(false)
+  const [imageError, setImageError] = useState(false)
   const titleRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -33,6 +35,7 @@ export function SpotifyWidget({ isVisible, inSidebar = false }: SpotifyWidgetPro
       const response = await fetch("/api/spotify")
       const data = await response.json()
       setSpotifyData(data)
+      setImageError(false) // Reset image error on new data
       if (data.progress) {
         setLocalProgress(data.progress)
       }
@@ -87,7 +90,19 @@ export function SpotifyWidget({ isVisible, inSidebar = false }: SpotifyWidgetPro
   }
 
   const toggleMinimized = () => {
+    if (isAnimating) return // Prevent multiple clicks during animation
+
+    setIsAnimating(true)
     setIsMinimized(!isMinimized)
+
+    // Reset animation state after animation completes
+    setTimeout(() => {
+      setIsAnimating(false)
+    }, 600) // Match the animation duration
+  }
+
+  const handleImageError = () => {
+    setImageError(true)
   }
 
   if (loading) {
@@ -136,19 +151,67 @@ export function SpotifyWidget({ isVisible, inSidebar = false }: SpotifyWidgetPro
   // Minimized view
   if (isMinimized && !inSidebar) {
     return (
-      <div
-        className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500 ${
-          isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
-        }`}
-      >
-        <button
-          onClick={toggleMinimized}
-          className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl px-4 py-2 flex items-center gap-2 shadow-lg hover:bg-zinc-800/80 transition-all duration-300"
+      <>
+        <style jsx>{`
+          @keyframes expand-from-minimized {
+            0% {
+              width: 200px;
+              height: 40px;
+              opacity: 1;
+            }
+            50% {
+              width: 300px;
+              height: 60px;
+              opacity: 0.8;
+            }
+            100% {
+              width: 360px;
+              height: 120px;
+              opacity: 1;
+            }
+          }
+          
+          @keyframes collapse-to-minimized {
+            0% {
+              width: 360px;
+              height: 120px;
+              opacity: 1;
+            }
+            50% {
+              width: 300px;
+              height: 60px;
+              opacity: 0.8;
+            }
+            100% {
+              width: 200px;
+              height: 40px;
+              opacity: 1;
+            }
+          }
+          
+          .widget-expanding {
+            animation: expand-from-minimized 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+          }
+          
+          .widget-collapsing {
+            animation: collapse-to-minimized 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+          }
+        `}</style>
+        <div
+          className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500 ${
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
+          }`}
         >
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-          <span className="text-green-400 font-inter text-xs uppercase tracking-wide">aarush is locked in</span>
-        </button>
-      </div>
+          <button
+            onClick={toggleMinimized}
+            disabled={isAnimating}
+            className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl px-4 py-2 flex items-center gap-2 shadow-lg hover:bg-zinc-800/80 transition-all duration-300 hover:scale-105"
+          >
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            <span className="text-green-400 font-inter text-xs uppercase tracking-wide">aarush is locked in</span>
+          </button>
+        </div>
+      </>
     )
   }
 
@@ -174,31 +237,93 @@ export function SpotifyWidget({ isVisible, inSidebar = false }: SpotifyWidgetPro
         .carousel-text {
           padding-right: 2rem;
         }
+        
         @keyframes expand-widget {
-          from {
-            max-height: 40px;
+          0% {
+            width: 200px;
+            height: 40px;
+            transform: scale(0.95);
             opacity: 0.8;
           }
-          to {
-            max-height: 200px;
+          50% {
+            width: 300px;
+            height: 80px;
+            transform: scale(1.02);
+            opacity: 0.9;
+          }
+          100% {
+            width: 360px;
+            height: auto;
+            transform: scale(1);
             opacity: 1;
           }
         }
+        
         @keyframes collapse-widget {
-          from {
-            max-height: 200px;
+          0% {
+            width: 360px;
+            height: auto;
+            transform: scale(1);
             opacity: 1;
           }
-          to {
-            max-height: 40px;
+          50% {
+            width: 300px;
+            height: 80px;
+            transform: scale(0.98);
+            opacity: 0.9;
+          }
+          100% {
+            width: 200px;
+            height: 40px;
+            transform: scale(0.95);
             opacity: 0.8;
           }
         }
-        .widget-expand {
-          animation: expand-widget 0.4s ease-out forwards;
+        
+        @keyframes fade-in-content {
+          0% {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
+        
+        @keyframes fade-out-content {
+          0% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+          100% {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+        }
+        
+        .widget-expand {
+          animation: expand-widget 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        
         .widget-collapse {
-          animation: collapse-widget 0.4s ease-in forwards;
+          animation: collapse-widget 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        
+        .content-fade-in {
+          animation: fade-in-content 0.4s ease-out 0.2s both;
+        }
+        
+        .content-fade-out {
+          animation: fade-out-content 0.3s ease-in both;
+        }
+        
+        .album-art-animate {
+          transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .progress-bar-animate {
+          transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
       `}</style>
       <div
@@ -213,6 +338,8 @@ export function SpotifyWidget({ isVisible, inSidebar = false }: SpotifyWidgetPro
         <div
           className={`bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl shadow-lg hover:bg-zinc-800/80 transition-all duration-300 group relative overflow-hidden ${
             inSidebar ? "w-full" : "min-w-[340px] max-w-[380px]"
+          } ${isAnimating && !isMinimized ? "widget-expand" : ""} ${
+            isAnimating && isMinimized ? "widget-collapse" : ""
           }`}
         >
           <a href={spotifyData.songUrl} target="_blank" rel="noopener noreferrer" className="block p-2.5">
@@ -224,7 +351,10 @@ export function SpotifyWidget({ isVisible, inSidebar = false }: SpotifyWidgetPro
                   e.stopPropagation()
                   toggleMinimized()
                 }}
-                className="absolute top-1.5 right-1.5 w-5 h-5 flex items-center justify-center rounded-full bg-zinc-800/50 hover:bg-zinc-700/50 transition-all duration-300 opacity-0 group-hover:opacity-100 z-10"
+                disabled={isAnimating}
+                className={`absolute top-1.5 right-1.5 w-5 h-5 flex items-center justify-center rounded-full bg-zinc-800/50 hover:bg-zinc-700/50 transition-all duration-300 z-10 ${
+                  isAnimating ? "opacity-0" : "opacity-0 group-hover:opacity-100"
+                }`}
               >
                 <svg className="w-2.5 h-2.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
@@ -232,31 +362,51 @@ export function SpotifyWidget({ isVisible, inSidebar = false }: SpotifyWidgetPro
               </button>
             )}
 
-            <div className="flex items-center gap-3">
+            <div className={`flex items-center gap-3 ${isAnimating ? "content-fade-in" : ""}`}>
               {/* Album Art */}
-              {spotifyData.albumImageUrl && (
+              {spotifyData.albumImageUrl && !imageError && (
                 <div
-                  className={`relative rounded-lg overflow-hidden flex-shrink-0 transition-all duration-300 ${inSidebar ? "w-12 h-12" : "w-12 h-12"}`}
+                  className={`relative rounded-lg overflow-hidden flex-shrink-0 album-art-animate ${
+                    inSidebar ? "w-12 h-12" : "w-12 h-12"
+                  }`}
                 >
                   <Image
                     src={spotifyData.albumImageUrl || "/placeholder.svg"}
                     alt={`${spotifyData.album} cover`}
                     fill
                     className="object-cover"
+                    onError={handleImageError}
+                    unoptimized={false}
+                    priority={false}
                   />
+                </div>
+              )}
+
+              {/* Fallback Album Art */}
+              {(!spotifyData.albumImageUrl || imageError) && (
+                <div
+                  className={`relative rounded-lg overflow-hidden flex-shrink-0 album-art-animate bg-zinc-700 flex items-center justify-center ${
+                    inSidebar ? "w-12 h-12" : "w-12 h-12"
+                  }`}
+                >
+                  <svg className="w-6 h-6 text-zinc-400" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+                  </svg>
                 </div>
               )}
 
               {/* Song Info */}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
+                <div className={`flex items-center gap-2 mb-0.5 ${isAnimating ? "content-fade-in" : ""}`}>
                   <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
                   <span className="text-green-400 font-inter text-xs uppercase tracking-wide">aarush is locked in</span>
                 </div>
 
                 <div
                   ref={containerRef}
-                  className={`overflow-hidden mb-0.5 transition-all duration-300 ${inSidebar ? "text-sm" : "text-sm"}`}
+                  className={`overflow-hidden mb-0.5 transition-all duration-300 ${
+                    inSidebar ? "text-sm" : "text-sm"
+                  } ${isAnimating ? "content-fade-in" : ""}`}
                 >
                   {shouldScroll ? (
                     <div className="carousel-container carousel-scroll">
@@ -278,14 +428,18 @@ export function SpotifyWidget({ isVisible, inSidebar = false }: SpotifyWidgetPro
                 </div>
 
                 <div
-                  className={`text-zinc-400 font-crimson-text truncate mb-1.5 transition-all duration-300 ${inSidebar ? "text-xs" : "text-xs"}`}
+                  className={`text-zinc-400 font-crimson-text truncate mb-1.5 transition-all duration-300 ${
+                    inSidebar ? "text-xs" : "text-xs"
+                  } ${isAnimating ? "content-fade-in" : ""}`}
                 >
                   by {spotifyData.artist}
                 </div>
 
                 {/* Progress Bar */}
                 {spotifyData.duration && localProgress && (
-                  <div className="transition-all duration-300">
+                  <div
+                    className={`transition-all duration-300 progress-bar-animate ${isAnimating ? "content-fade-in" : ""}`}
+                  >
                     <div className="flex justify-between text-xs text-zinc-500 mb-1.5">
                       <span>{formatTime(localProgress)}</span>
                       <span>{formatTime(spotifyData.duration)}</span>
@@ -301,7 +455,7 @@ export function SpotifyWidget({ isVisible, inSidebar = false }: SpotifyWidgetPro
               </div>
 
               {/* Spotify Icon */}
-              <div className="flex-shrink-0">
+              <div className={`flex-shrink-0 ${isAnimating ? "content-fade-in" : ""}`}>
                 <svg
                   className={`text-green-500 group-hover:text-green-400 transition-colors ${inSidebar ? "w-5 h-5" : "w-5 h-5"}`}
                   fill="currentColor"
