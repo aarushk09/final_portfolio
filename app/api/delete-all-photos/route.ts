@@ -1,22 +1,30 @@
 import { NextResponse } from "next/server"
-import { list, del } from "@vercel/blob"
+import { supabase } from "@/lib/supabase"
 
 export async function DELETE() {
   try {
     console.log("Starting delete all photos process...")
 
-    // Get all blobs
-    const { blobs } = await list()
-
-    // Filter for image files only
-    const imageBlobs = blobs.filter((blob) => {
-      const isImage = blob.pathname.match(/\.(jpg|jpeg|png|gif|webp)$/i)
-      return isImage
+    // List all files in the photos folder
+    const { data, error } = await supabase.storage.from("portfolio-photos").list("photos", {
+      limit: 1000,
+      offset: 0,
     })
 
-    console.log(`Found ${imageBlobs.length} photos to delete`)
+    if (error) {
+      console.error("Failed to list photos:", error)
+      throw new Error(error.message)
+    }
 
-    if (imageBlobs.length === 0) {
+    // Filter for image files only
+    const imageFiles = data.filter((file) => {
+      const isImage = file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i)
+      return isImage && file.name !== ".emptyFolderPlaceholder"
+    })
+
+    console.log(`Found ${imageFiles.length} photos to delete`)
+
+    if (imageFiles.length === 0) {
       return NextResponse.json({
         success: true,
         message: "No photos to delete",
@@ -24,43 +32,23 @@ export async function DELETE() {
       })
     }
 
-    // Delete all image blobs
-    const deletePromises = imageBlobs.map(async (blob) => {
-      try {
-        await del(blob.url)
-        console.log(`Deleted: ${blob.pathname}`)
-        return { success: true, pathname: blob.pathname }
-      } catch (error) {
-        console.error(`Failed to delete ${blob.pathname}:`, error)
-        return { success: false, pathname: blob.pathname, error }
-      }
-    })
+    // Create array of file paths to delete
+    const filePaths = imageFiles.map((file) => `photos/${file.name}`)
 
-    const results = await Promise.allSettled(deletePromises)
+    // Delete all photos at once
+    const { error: deleteError } = await supabase.storage.from("portfolio-photos").remove(filePaths)
 
-    // Count successful deletions
-    const successfulDeletions = results.filter((result) => result.status === "fulfilled" && result.value.success).length
-
-    const failedDeletions = results.length - successfulDeletions
-
-    console.log(`Deletion complete: ${successfulDeletions} successful, ${failedDeletions} failed`)
-
-    if (failedDeletions > 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: `Failed to delete ${failedDeletions} photos`,
-          deletedCount: successfulDeletions,
-          totalCount: imageBlobs.length,
-        },
-        { status: 500 },
-      )
+    if (deleteError) {
+      console.error("Failed to delete photos:", deleteError)
+      throw new Error(deleteError.message)
     }
+
+    console.log(`Successfully deleted ${imageFiles.length} photos`)
 
     return NextResponse.json({
       success: true,
-      message: `Successfully deleted all ${successfulDeletions} photos`,
-      deletedCount: successfulDeletions,
+      message: `Successfully deleted all ${imageFiles.length} photos`,
+      deletedCount: imageFiles.length,
     })
   } catch (error) {
     console.error("Delete all photos error:", error)

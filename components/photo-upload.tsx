@@ -102,11 +102,11 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
     if (!files) return
 
     const validFiles = Array.from(files).filter(
-      (file) => file.type.startsWith("image/") && file.size <= 15 * 1024 * 1024, // 15MB limit
+      (file) => file.type.startsWith("image/") && file.size <= 10 * 1024 * 1024, // 10MB limit for Supabase
     )
 
     if (validFiles.length === 0) {
-      setError("Please select valid image files under 15MB")
+      setError("Please select valid image files under 10MB")
       return
     }
 
@@ -301,20 +301,20 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
                   <div className="flex-1">
                     <h4 className="font-inter text-orange-400 font-medium mb-2">Storage Service Issue</h4>
                     <p className="text-orange-300 font-inter text-sm mb-3">
-                      The Vercel Blob storage service appears to be suspended. This is likely due to:
+                      There's an issue with the storage service. Please check your Supabase setup:
                     </p>
                     <ul className="text-orange-300 font-inter text-sm space-y-1 mb-3 ml-4">
-                      <li>• Billing or payment issues</li>
-                      <li>• Storage quota exceeded</li>
-                      <li>• Account suspension</li>
+                      <li>• Verify environment variables are set</li>
+                      <li>• Check Supabase project status</li>
+                      <li>• Ensure storage bucket exists</li>
                     </ul>
                     <a
-                      href="https://vercel.com/dashboard"
+                      href="https://supabase.com/dashboard"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 text-orange-400 hover:text-orange-300 font-inter text-sm underline"
                     >
-                      Check Vercel Dashboard
+                      Check Supabase Dashboard
                       <ExternalLink className="w-3 h-3" />
                     </a>
                   </div>
@@ -334,7 +334,7 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
               >
                 <Upload className="w-12 h-12 text-zinc-400 mx-auto mb-4" />
                 <p className="text-zinc-300 font-inter mb-2">Drag and drop photos here, or click to select</p>
-                <p className="text-zinc-500 font-crimson-text text-sm">Supports JPG, PNG, WebP up to 15MB each</p>
+                <p className="text-zinc-500 font-crimson-text text-sm">Supports JPG, PNG, WebP up to 10MB each</p>
                 <p className="text-zinc-600 font-inter text-xs mt-2">
                   Photos with duplicate IDs (IMG_1234, DSC_5678, etc.) will be automatically skipped
                 </p>

@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { put } from "@vercel/blob"
+import { supabase } from "@/lib/supabase"
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,9 +21,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unsupported file type" }, { status: 400 })
     }
 
-    // File size limit
-    if (file.size > 15 * 1024 * 1024) {
-      return NextResponse.json({ error: "File size must be less than 15MB" }, { status: 400 })
+    // File size limit (10MB for Supabase free tier)
+    if (file.size > 10 * 1024 * 1024) {
+      return NextResponse.json({ error: "File size must be less than 10MB" }, { status: 400 })
     }
 
     // Get file extension more reliably
@@ -42,19 +42,22 @@ export async function POST(request: NextRequest) {
 
     // Create filename with photo ID for duplicate detection
     const timestamp = Date.now()
-    const safeFilename = `img_${timestamp}_${photoId}.${extension}`
+    const fileName = `photos/img_${timestamp}_${photoId}.${extension}`
 
-    console.log("Uploading:", {
-      filename: safeFilename,
+    console.log("Uploading to Supabase:", {
+      fileName,
       type: file.type,
       size: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
       photoId: photoId,
     })
 
-    // Upload to Vercel Blob with metadata
-    const blob = await put(safeFilename, file, {
-      access: "public",
-      addRandomSuffix: false, // Don't add random suffix since we're using photo ID
+    // Convert File to ArrayBuffer for Supabase
+    const arrayBuffer = await file.arrayBuffer()
+    const fileBuffer = new Uint8Array(arrayBuffer)
+
+    // Upload to Supabase Storage
+    const { data, error } = await supabase.storage.from("portfolio-photos").upload(fileName, fileBuffer, {
+      contentType: file.type,
       metadata: {
         photoId: photoId,
         originalName: file.name,
@@ -62,22 +65,30 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    if (error) {
+      console.error("Supabase upload error:", error)
+      throw new Error(error.message)
+    }
+
+    // Get public URL
+    const { data: urlData } = supabase.storage.from("portfolio-photos").getPublicUrl(fileName)
+
     return NextResponse.json({
       success: true,
-      url: blob.url,
-      filename: safeFilename,
+      url: urlData.publicUrl,
+      fileName: fileName,
       photoId: photoId,
     })
   } catch (error) {
     console.error("Upload error:", error)
 
-    // Handle specific Vercel Blob errors
+    // Handle specific Supabase errors
     let errorMessage = "Failed to upload photo"
     if (error instanceof Error) {
-      if (error.message.includes("suspended")) {
-        errorMessage = "Storage service suspended - please contact support"
+      if (error.message.includes("storage")) {
+        errorMessage = "Storage service error - please try again"
       } else if (error.message.includes("quota")) {
-        errorMessage = "Storage quota exceeded - please free up space"
+        errorMessage = "Storage quota exceeded"
       } else if (error.message.includes("network")) {
         errorMessage = "Network error - please try again"
       } else if (error.message.includes("size")) {
@@ -95,7 +106,7 @@ export async function POST(request: NextRequest) {
         details: error instanceof Error ? error.message : "Unknown error",
         isServiceError:
           error instanceof Error &&
-          (error.message.includes("suspended") || error.message.includes("quota") || error.message.includes("billing")),
+          (error.message.includes("storage") || error.message.includes("quota") || error.message.includes("billing")),
       },
       { status: 500 },
     )

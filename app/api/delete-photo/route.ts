@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { del } from "@vercel/blob"
+import { supabase } from "@/lib/supabase"
 
 export async function DELETE(request: NextRequest) {
   try {
@@ -9,8 +9,15 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Photo ID is required" }, { status: 400 })
     }
 
-    // Delete the photo from Vercel Blob
-    await del(photoId)
+    console.log("Deleting photo:", photoId)
+
+    // Delete the photo from Supabase Storage
+    const { error } = await supabase.storage.from("portfolio-photos").remove([photoId])
+
+    if (error) {
+      console.error("Supabase delete error:", error)
+      throw new Error(error.message)
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {
