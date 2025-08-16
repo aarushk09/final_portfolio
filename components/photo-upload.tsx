@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useRef } from "react"
-import { Upload, X, Check, Loader2, AlertCircle } from "lucide-react"
+import { Upload, X, Check, Loader2, AlertCircle, ExternalLink, Shield } from "lucide-react"
 
 interface Photo {
   id: string
@@ -19,6 +19,7 @@ interface UploadResult {
   isDuplicate?: boolean
   isServiceError?: boolean
   needsSetup?: boolean
+  needsRLSFix?: boolean
 }
 
 interface PhotoUploadProps {
@@ -199,6 +200,7 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
                 error: data.error || "Upload failed",
                 isServiceError: data.isServiceError || false,
                 needsSetup: data.needsSetup || false,
+                needsRLSFix: data.needsRLSFix || false,
               })
             }
           } catch (error) {
@@ -283,6 +285,7 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
   const duplicateUploads = uploadResults.filter((r) => r.isDuplicate)
   const serviceErrors = uploadResults.filter((r) => r.isServiceError)
   const setupNeeded = uploadResults.some((r) => r.needsSetup)
+  const rlsFixNeeded = uploadResults.some((r) => r.needsRLSFix)
 
   return (
     <>
@@ -310,8 +313,40 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
               </div>
             )}
 
+            {/* RLS Fix Needed Alert */}
+            {rlsFixNeeded && (
+              <div className="mb-4 p-4 bg-orange-900/20 border border-orange-700 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <Shield className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <h4 className="font-inter text-orange-400 font-medium mb-2">Row Level Security Issue</h4>
+                    <p className="text-orange-300 font-inter text-sm mb-3">
+                      Your Supabase storage bucket has Row Level Security (RLS) enabled, but no policies allow uploads.
+                    </p>
+                    <div className="bg-orange-900/30 rounded-lg p-3 mb-3">
+                      <h5 className="font-inter text-orange-400 text-sm font-medium mb-2">Quick Fix Options:</h5>
+                      <ol className="text-orange-300 font-inter text-sm space-y-1 ml-4">
+                        <li>1. Add SUPABASE_SERVICE_ROLE_KEY to your environment variables</li>
+                        <li>2. OR disable RLS on the storage bucket</li>
+                        <li>3. OR create RLS policies to allow uploads</li>
+                      </ol>
+                    </div>
+                    <a
+                      href="https://supabase.com/dashboard"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-orange-400 hover:text-orange-300 font-inter text-sm underline"
+                    >
+                      Fix in Supabase Dashboard
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Setup Needed Alert */}
-            {setupNeeded && (
+            {setupNeeded && !rlsFixNeeded && (
               <div className="mb-4 p-4 bg-orange-900/20 border border-orange-700 rounded-lg">
                 <div className="flex items-start gap-3">
                   <AlertCircle className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
@@ -327,7 +362,7 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
             )}
 
             {/* Service Error Alert */}
-            {serviceErrors.length > 0 && !setupNeeded && (
+            {serviceErrors.length > 0 && !setupNeeded && !rlsFixNeeded && (
               <div className="mb-4 p-4 bg-red-900/20 border border-red-700 rounded-lg">
                 <div className="flex items-start gap-3">
                   <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
@@ -444,7 +479,7 @@ export function PhotoUpload({ existingPhotos = [] }: PhotoUploadProps) {
                       ))}
                     </div>
 
-                    {!setupNeeded && (
+                    {!setupNeeded && !rlsFixNeeded && (
                       <button
                         onClick={retryFailedUploads}
                         className="mt-4 w-full bg-red-600 hover:bg-red-700 text-white font-inter py-2 px-4 rounded-lg transition-colors"
