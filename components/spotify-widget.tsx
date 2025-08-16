@@ -27,16 +27,14 @@ export function SpotifyWidget({ isVisible, inSidebar = false }: SpotifyWidgetPro
   const [shouldScroll, setShouldScroll] = useState(false)
   const titleRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const lastUpdateTime = useRef<number>(Date.now())
 
   const fetchSpotifyData = async () => {
     try {
       const response = await fetch("/api/spotify")
       const data = await response.json()
       setSpotifyData(data)
-      if (data.progress !== undefined) {
+      if (data.progress) {
         setLocalProgress(data.progress)
-        lastUpdateTime.current = Date.now()
       }
     } catch (error) {
       console.error("Error fetching Spotify data:", error)
@@ -64,22 +62,13 @@ export function SpotifyWidget({ isVisible, inSidebar = false }: SpotifyWidgetPro
 
   // Live progress bar update every second
   useEffect(() => {
-    if (!spotifyData?.isPlaying || spotifyData.progress === undefined) return
+    if (!spotifyData?.isPlaying || !spotifyData.progress) return
 
     const progressInterval = setInterval(() => {
       setLocalProgress((prev) => {
         if (!spotifyData.duration) return prev
-
-        // Calculate how much time has passed since last server update
-        const timeSinceUpdate = Date.now() - lastUpdateTime.current
-        const expectedProgress = (spotifyData.progress || 0) + timeSinceUpdate
-
-        // Don't exceed duration
-        if (expectedProgress >= spotifyData.duration) {
-          return spotifyData.duration
-        }
-
-        return expectedProgress
+        const newProgress = prev + 1000
+        return newProgress >= spotifyData.duration ? spotifyData.duration : newProgress
       })
     }, 1000)
 
@@ -94,7 +83,7 @@ export function SpotifyWidget({ isVisible, inSidebar = false }: SpotifyWidgetPro
 
   const getProgressPercentage = () => {
     if (!spotifyData?.duration || !localProgress) return 0
-    return Math.min((localProgress / spotifyData.duration) * 100, 100)
+    return (localProgress / spotifyData.duration) * 100
   }
 
   const toggleMinimized = () => {
@@ -295,7 +284,7 @@ export function SpotifyWidget({ isVisible, inSidebar = false }: SpotifyWidgetPro
                 </div>
 
                 {/* Progress Bar */}
-                {spotifyData.duration && localProgress !== undefined && (
+                {spotifyData.duration && localProgress && (
                   <div className="transition-all duration-300">
                     <div className="flex justify-between text-xs text-zinc-500 mb-1.5">
                       <span>{formatTime(localProgress)}</span>
