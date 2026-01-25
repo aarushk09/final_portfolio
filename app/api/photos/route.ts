@@ -43,11 +43,7 @@ export async function GET() {
           .filter((file) => imageExtensions.test(file.name))
           .map((file) => ({
             id: file.path,
-            url: FilebrowserClient.getPublicShareFileUrl(
-              filebrowserUrl,
-              shareHash,
-              file.name
-            ),
+            url: `/api/photos/proxy?hash=${shareHash}&name=${encodeURIComponent(file.name)}`,
             uploadedAt: file.modified,
             name: file.name,
             size: file.size,
