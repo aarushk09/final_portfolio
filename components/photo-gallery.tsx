@@ -3,6 +3,13 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import Image from "next/image"
 import { Loader2, X, ChevronLeft, ChevronRight } from "lucide-react"
+import type React from "react"
+
+// Type-safe icon components
+const LoaderIcon = Loader2 as React.ComponentType<{ className?: string }>
+const XIcon = X as React.ComponentType<{ className?: string }>
+const ChevronLeftIcon = ChevronLeft as React.ComponentType<{ className?: string }>
+const ChevronRightIcon = ChevronRight as React.ComponentType<{ className?: string }>
 
 interface Photo {
   id: string
@@ -65,7 +72,7 @@ function PhotoItem({ photo, index, onOpenLightbox, onDelete, deleting, isPreload
       {/* Loading skeleton - only show if not preloaded */}
       {!isLoaded && isInView && !isPreloaded && (
         <div className="absolute inset-0 bg-gradient-to-br from-zinc-800 to-zinc-900 animate-pulse flex items-center justify-center">
-          <Loader2 className="w-6 h-6 text-zinc-500 animate-spin" />
+          <LoaderIcon className="w-6 h-6 text-zinc-500 animate-spin" />
         </div>
       )}
 
@@ -289,7 +296,7 @@ export function PhotoGallery({ preloadedPhotos = [], preloadedUrls = new Set() }
             onClick={closeLightbox}
             className="absolute top-4 right-4 p-3 bg-zinc-900/80 hover:bg-zinc-800 rounded-full transition-colors z-10"
           >
-            <X className="w-6 h-6 text-white" />
+            <XIcon className="w-6 h-6 text-white" />
           </button>
 
           {photos.length > 1 && (
@@ -298,13 +305,13 @@ export function PhotoGallery({ preloadedPhotos = [], preloadedUrls = new Set() }
                 onClick={() => navigateLightbox("prev")}
                 className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-zinc-900/80 hover:bg-zinc-800 rounded-full transition-colors z-10"
               >
-                <ChevronLeft className="w-6 h-6 text-white" />
+                <ChevronLeftIcon className="w-6 h-6 text-white" />
               </button>
               <button
                 onClick={() => navigateLightbox("next")}
                 className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-zinc-900/80 hover:bg-zinc-800 rounded-full transition-colors z-10"
               >
-                <ChevronRight className="w-6 h-6 text-white" />
+                <ChevronRightIcon className="w-6 h-6 text-white" />
               </button>
             </>
           )}

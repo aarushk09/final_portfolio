@@ -10,6 +10,75 @@ export default function Portfolio() {
   const [activeTab, setActiveTab] = useState("portfolio")
   const [showSpotify, setShowSpotify] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [selectedExperience, setSelectedExperience] = useState<string | null>(null)
+
+  // Detailed experience data
+  const experienceDetails = {
+    evion: {
+      title: "Evion",
+      role: "Co-Founder",
+      period: "Jan 2025 - Present",
+      description: "Building ML infrastructure for agriculture. Working with 500+ farms, trained models on 30,000+ images achieving 95% accuracy.",
+      detailedDescription: "Leading the development of cutting-edge machine learning infrastructure specifically designed for agricultural applications. Our platform serves over 500 farms across multiple regions, providing real-time crop monitoring, disease detection, and yield prediction capabilities.",
+      achievements: [
+        "Trained computer vision models on 30,000+ agricultural images achieving 95% accuracy",
+        "Deployed ML infrastructure serving 500+ farms with real-time monitoring",
+        "Developed automated disease detection system reducing crop loss by 30%",
+        "Built scalable data pipeline processing 10TB+ of agricultural data monthly",
+        "Implemented edge computing solutions for real-time field analysis"
+      ],
+      technologies: ["Python", "TensorFlow", "Computer Vision", "AWS", "Edge Computing", "IoT Sensors"],
+      impact: "Helping farmers increase crop yields by 25% on average while reducing pesticide usage by 40%"
+    },
+    dailysat: {
+      title: "DailySAT",
+      role: "Founder & CEO",
+      period: "Aug 2024 - Present",
+      description: "Transforming SAT prep through gamified learning experiences and interactive challenges.",
+      detailedDescription: "Created an innovative educational platform that revolutionizes SAT preparation through gamification, personalized learning paths, and interactive challenges. The platform adapts to individual learning styles and provides comprehensive analytics for both students and educators.",
+      achievements: [
+        "Developed adaptive learning algorithm that personalizes study paths for each student",
+        "Built gamification system with achievements, leaderboards, and progress tracking",
+        "Created comprehensive question bank with 10,000+ practice problems",
+        "Implemented AI-powered performance analytics and recommendations",
+        "Launched mobile app with offline study capabilities"
+      ],
+      technologies: ["React", "Node.js", "PostgreSQL", "AI/ML", "Mobile Development", "Analytics"],
+      impact: "Students using DailySAT show an average score improvement of 150+ points"
+    },
+    studybubbly: {
+      title: "Study Bubbly",
+      role: "CTO",
+      period: "Sep 2024 - Present",
+      description: "Platform for AP study materials. Helped 250,000+ students worldwide with curated notes and educational content.",
+      detailedDescription: "Serving as Chief Technology Officer for a comprehensive educational platform that provides curated study materials, interactive content, and collaborative learning tools for AP students worldwide. The platform has become a go-to resource for high school students preparing for Advanced Placement exams.",
+      achievements: [
+        "Scaled platform to serve 250,000+ students across 50+ countries",
+        "Developed content management system handling 1000+ study guides",
+        "Built collaborative learning features enabling student study groups",
+        "Implemented advanced search and recommendation algorithms",
+        "Created mobile-responsive platform with 99.9% uptime"
+      ],
+      technologies: ["Next.js", "TypeScript", "MongoDB", "Redis", "CDN", "Mobile Optimization"],
+      impact: "Over 250,000 students have accessed our materials with 85% reporting improved AP exam scores"
+    },
+    webgenius: {
+      title: "WebGenius 501(c)(3)",
+      role: "Founder",
+      period: "Jul 2024 - Present",
+      description: "Non-profit creating free websites for small organizations. 100+ projects completed, clients raised $300k+ in funding.",
+      detailedDescription: "Founded and lead a registered 501(c)(3) non-profit organization dedicated to providing free, professional website development services to small organizations, non-profits, and community groups that lack the resources for professional web development.",
+      achievements: [
+        "Completed 100+ website projects for non-profits and small businesses",
+        "Helped client organizations raise over $300,000 in funding",
+        "Built team of 25+ volunteer developers and designers",
+        "Established partnerships with major hosting providers for free services",
+        "Created standardized development processes and quality assurance protocols"
+      ],
+      technologies: ["WordPress", "PHP", "MySQL", "JavaScript", "CSS", "Hosting Management"],
+      impact: "Our client organizations have collectively raised over $300,000 in funding after receiving new websites"
+    }
+  }
 
   // Start preloading photos immediately
   const { photos, preloadedUrls, startPreloading } = usePhotoPreloader()
@@ -24,6 +93,28 @@ export default function Portfolio() {
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
+
+  // Handle ESC key to close modal
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && selectedExperience) {
+        setSelectedExperience(null)
+      }
+    }
+
+    if (selectedExperience) {
+      window.addEventListener("keydown", handleKeyDown)
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown)
+      document.body.style.overflow = 'unset'
+    }
+  }, [selectedExperience])
 
   // Start preloading photos as soon as the page loads
   useEffect(() => {
@@ -133,7 +224,10 @@ export default function Portfolio() {
                   <div>
                     <h2 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-12">Experience</h2>
                     <div className="space-y-12">
-                      <div className="group">
+                      <div 
+                        className="group cursor-pointer p-4 -m-4 rounded-xl hover:bg-white/5 transition-all duration-300"
+                        onClick={() => setSelectedExperience('evion')}
+                      >
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3">
                           <h3 className="font-inter text-2xl text-white group-hover:text-zinc-200 transition-colors">
                             Evion
@@ -146,9 +240,15 @@ export default function Portfolio() {
                           Building ML infrastructure for agriculture. Working with 500+ farms, trained models on 30,000+
                           images achieving 95% accuracy.
                         </p>
+                        <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <span className="font-inter text-sm text-zinc-500">Click to learn more →</span>
+                        </div>
                       </div>
 
-                      <div className="group">
+                      <div 
+                        className="group cursor-pointer p-4 -m-4 rounded-xl hover:bg-white/5 transition-all duration-300"
+                        onClick={() => setSelectedExperience('dailysat')}
+                      >
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3">
                           <h3 className="font-inter text-2xl text-white group-hover:text-zinc-200 transition-colors">
                             DailySAT
@@ -160,9 +260,15 @@ export default function Portfolio() {
                         <p className="font-crimson-text text-lg text-zinc-400 leading-relaxed">
                           Transforming SAT prep through gamified learning experiences and interactive challenges.
                         </p>
+                        <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <span className="font-inter text-sm text-zinc-500">Click to learn more →</span>
+                        </div>
                       </div>
 
-                      <div className="group">
+                      <div 
+                        className="group cursor-pointer p-4 -m-4 rounded-xl hover:bg-white/5 transition-all duration-300"
+                        onClick={() => setSelectedExperience('studybubbly')}
+                      >
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3">
                           <h3 className="font-inter text-2xl text-white group-hover:text-zinc-200 transition-colors">
                             Study Bubbly
@@ -175,9 +281,15 @@ export default function Portfolio() {
                           Platform for AP study materials. Helped 250,000+ students worldwide with curated notes and
                           educational content.
                         </p>
+                        <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <span className="font-inter text-sm text-zinc-500">Click to learn more →</span>
+                        </div>
                       </div>
 
-                      <div className="group">
+                      <div 
+                        className="group cursor-pointer p-4 -m-4 rounded-xl hover:bg-white/5 transition-all duration-300"
+                        onClick={() => setSelectedExperience('webgenius')}
+                      >
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3">
                           <h3 className="font-inter text-2xl text-white group-hover:text-zinc-200 transition-colors">
                             WebGenius 501(c)(3)
@@ -190,91 +302,92 @@ export default function Portfolio() {
                           Non-profit creating free websites for small organizations. 100+ projects completed, clients
                           raised $300k+ in funding.
                         </p>
+                        <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <span className="font-inter text-sm text-zinc-500">Click to learn more →</span>
+                        </div>
                       </div>
                     </div>
                   </div>
+                </div>
 
-                  {/* Right Column - Photo & Info */}
-                  <div className="lg:col-span-1 space-y-12">
+                {/* Right Column - Photo & Info */}
+                <div className="lg:col-span-1 space-y-12">
+                  <div>
+                    <img
+                      src="/images/aarush-photo.png"
+                      alt="Aarush in Switzerland with mountains in background"
+                      className="w-[300px] h-[300px] object-cover object-bottom rounded-2xl"
+                    />
+                  </div>
+
+                  <div className="space-y-8">
+                    {/* Education Section */}
                     <div>
-                      <img
-                        src="/images/aarush-photo.png"
-                        alt="Aarush in Switzerland with mountains in background"
-                        className="w-full aspect-[4/5] object-cover object-center rounded-2xl"
-                      />
+                      <h3 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-4">Education</h3>
+                      <div className="space-y-4">
+                        <div>
+                          <h4 className="font-inter text-lg text-white mb-1">
+                            Georgia State University Perimeter College
+                          </h4>
+                          
+                          <span className="font-inter text-xs text-zinc-500 uppercase tracking-wide">
+                            May 2024 - July 2024
+                          </span>
+                        </div>
+                        <div>
+                          <h4 className="font-inter text-lg text-white mb-1">South Forsyth High School</h4>
+                          <span className="font-inter text-xs text-zinc-500 uppercase tracking-wide">2022</span>
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="space-y-8">
-                      {/* Education Section */}
-                      <div>
-                        <h3 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-4">Education</h3>
-                        <div className="space-y-4">
-                          <div>
-                            <h4 className="font-inter text-lg text-white mb-1">
-                              Georgia State University Perimeter College
-                            </h4>
-                            <p className="font-crimson-text text-base text-zinc-400">
-                              Dual Enrollment, English Language and Literature
-                            </p>
-                            <span className="font-inter text-xs text-zinc-500 uppercase tracking-wide">
-                              May 2024 - July 2024
-                            </span>
-                          </div>
-                          <div>
-                            <h4 className="font-inter text-lg text-white mb-1">South Forsyth High School</h4>
-                            <span className="font-inter text-xs text-zinc-500 uppercase tracking-wide">2022</span>
-                          </div>
-                        </div>
-                      </div>
+                    <div>
+                      <h3 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-4">Skills</h3>
+                      <p className="font-crimson-text text-lg text-zinc-300 leading-relaxed">
+                        Machine Learning
+                        <br />
+                        Arduino
+                        <br />
+                        Mechanical Engineering
+                      </p>
+                    </div>
 
-                      <div>
-                        <h3 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-4">Skills</h3>
-                        <p className="font-crimson-text text-lg text-zinc-300 leading-relaxed">
-                          Machine Learning
-                          <br />
-                          Arduino
-                          <br />
-                          Mechanical Engineering
-                        </p>
-                      </div>
+                    <div>
+                      <h3 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-4">
+                        Programming
+                      </h3>
+                      <p className="font-crimson-text text-lg text-zinc-300 leading-relaxed">
+                        C#
+                        <br />
+                        Python
+                        <br />
+                        SQL
+                        <br />
+                        JavaScript
+                      </p>
+                    </div>
 
-                      <div>
-                        <h3 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-4">
-                          Programming
-                        </h3>
-                        <p className="font-crimson-text text-lg text-zinc-300 leading-relaxed">
-                          C#
-                          <br />
-                          Python
-                          <br />
-                          SQL
-                          <br />
-                          JavaScript
-                        </p>
-                      </div>
-
-                      <div>
-                        <h3 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-4">Contact</h3>
-                        <div className="space-y-3">
-                          <a
-                            href="mailto:aarushkute8@gmail.com"
-                            className="block font-crimson-text text-lg text-zinc-300 hover:text-white transition-colors"
-                          >
-                            aarushkute8@gmail.com
-                          </a>
-                          <a
-                            href="https://www.linkedin.com/in/aarushkute-1639a525b"
-                            className="block font-crimson-text text-lg text-zinc-300 hover:text-white transition-colors"
-                          >
-                            LinkedIn
-                          </a>
-                          <a
-                            href="https://portfolio-v2f-two.vercel.app/"
-                            className="block font-crimson-text text-lg text-zinc-300 hover:text-white transition-colors"
-                          >
-                            Personal Website
-                          </a>
-                        </div>
+                    <div>
+                      <h3 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-4">Contact</h3>
+                      <div className="space-y-3">
+                        <a
+                          href="mailto:aarushkute8@gmail.com"
+                          className="block font-crimson-text text-lg text-zinc-300 hover:text-white transition-colors"
+                        >
+                          aarushkute8@gmail.com
+                        </a>
+                        <a
+                          href="https://www.linkedin.com/in/aarushkute-1639a525b"
+                          className="block font-crimson-text text-lg text-zinc-300 hover:text-white transition-colors"
+                        >
+                          LinkedIn
+                        </a>
+                        <a
+                          href="https://portfolio-v2f-two.vercel.app/"
+                          className="block font-crimson-text text-lg text-zinc-300 hover:text-white transition-colors"
+                        >
+                          Personal Website
+                        </a>
                       </div>
                     </div>
                   </div>
@@ -289,26 +402,48 @@ export default function Portfolio() {
                 <div>
                   <h3 className="font-inter text-xl text-white mb-4">Honors & Awards</h3>
                   <p className="font-crimson-text text-lg text-zinc-400 leading-relaxed">
-                    8x Consecutive County & State Winner
+                    GASTC 8x Consecutive County & State Winner (~1k+ kids every year)
                     <br />
-                    HackerRank ProjectEuler+ Achievements
+                    ProjectEuler+ HackerRank 32/205113
                     <br />
-                    3x Robotics State Qualifier
+                    3x Regional Winners, 3x State Qualifier, State Design Winner, and World Championship Qualifier
                     <br />
-                    Worlds Championships 2025
-                    <br />
-                    Piano RCM Level 8 Certification
+                    Piano RCM Level 8 Certification, Level 8 Theory Certification
                     <br />
                     Presidential Volunteering Award Gold (300 hours)
                   </p>
                 </div>
                 <div>
                   <h3 className="font-inter text-xl text-white mb-4">Publications</h3>
-                  <p className="font-crimson-text text-lg text-zinc-400 leading-relaxed">
-                    Neural Network-Enhanced Inventory Forecasting for DDMRP
-                    <br />
-                    Watershed Modeling Using QSWAT for Water Quality Analysis
-                  </p>
+                  <div className="space-y-4">
+                    <div>
+                      <a 
+                        href="https://online.fliphtml5.com/pgovq/jxpw/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-crimson-text text-lg text-zinc-300 hover:text-white transition-colors"
+                      >
+                        Neural Network-Enhanced Inventory Forecasting for DDMRP
+                      </a>
+                      <p className="font-inter text-xs text-zinc-500 mt-1">
+                        Submitted to NeurIPS
+                      </p>
+                    </div>
+                    <div>
+                      <p className="font-crimson-text text-lg text-zinc-400 leading-relaxed">
+                        Watershed Modeling Using QSWAT to Find the Water Quality at Two Fish Hatcheries in Chattahoochee River
+                      </p>
+                      <p className="font-inter text-xs text-zinc-500 mt-1">
+                        Oral presentation at SCWRC (Southern Climate & Water Research Conference)
+                      </p>
+                      <p className="font-crimson-text text-sm text-zinc-500 leading-relaxed mt-2">
+                        Completed detailed literature review confirming temporal increase of ammonia causes sudden water temperature drops. 
+                        Developed QSWAT hydrologic model showing manyfold increase in Nitrogen, Ammonia, and Nitrate-Nitrite loadings 
+                        from subwatersheds draining to Lake Lanier. Completed SWATCUP analysis for model calibration and validation 
+                        with in-situ daily data.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </section>
@@ -322,6 +457,97 @@ export default function Portfolio() {
           </>
         )
     }
+  }
+
+  // Experience Modal Component
+  const ExperienceModal = () => {
+    if (!selectedExperience) return null
+
+    const experience = experienceDetails[selectedExperience as keyof typeof experienceDetails]
+    if (!experience) return null
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
+        {/* Backdrop */}
+        <div 
+          className="absolute inset-0 bg-black/50 backdrop-blur-md cursor-pointer animate-in fade-in duration-300"
+          onClick={() => setSelectedExperience(null)}
+        />
+        
+        {/* Modal Content */}
+        <div className="relative bg-zinc-900/95 backdrop-blur-xl border border-zinc-700/50 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+          {/* Header */}
+          <div className="sticky top-0 bg-zinc-900/95 backdrop-blur-xl border-b border-zinc-700/50 p-6 flex items-center justify-between">
+            <div>
+              <h2 className="font-inter text-3xl text-white mb-2">{experience.title}</h2>
+              <div className="flex items-center gap-4">
+                <span className="font-inter text-lg text-zinc-300">{experience.role}</span>
+                <span className="font-inter text-sm text-zinc-500 uppercase tracking-wide">
+                  {experience.period}
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={() => setSelectedExperience(null)}
+              className="p-2 rounded-full bg-zinc-800/50 hover:bg-zinc-700/50 transition-colors text-zinc-400 hover:text-white"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="p-6 space-y-8">
+            {/* Overview */}
+            <div>
+              <h3 className="font-inter text-xl text-white mb-4">Overview</h3>
+              <p className="font-crimson-text text-lg text-zinc-300 leading-relaxed">
+                {experience.detailedDescription}
+              </p>
+            </div>
+
+            {/* Key Achievements */}
+            <div>
+              <h3 className="font-inter text-xl text-white mb-4">Key Achievements</h3>
+              <ul className="space-y-3">
+                {experience.achievements.map((achievement, index) => (
+                  <li key={index} className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-zinc-400 rounded-full mt-3 flex-shrink-0" />
+                    <p className="font-crimson-text text-lg text-zinc-300 leading-relaxed">
+                      {achievement}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Technologies */}
+            <div>
+              <h3 className="font-inter text-xl text-white mb-4">Technologies & Skills</h3>
+              <div className="flex gap-2 flex-wrap">
+                {experience.technologies.map((tech, index) => (
+                  <span 
+                    key={index}
+                    className="px-3 py-2 text-sm bg-zinc-800/50 text-zinc-300 rounded-full border border-zinc-700/50"
+                  >
+                    {tech}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Impact */}
+            <div className="bg-zinc-800/30 rounded-xl p-6 border border-zinc-700/30">
+              <h3 className="font-inter text-xl text-white mb-3">Impact</h3>
+              <p className="font-crimson-text text-lg text-zinc-300 leading-relaxed">
+                {experience.impact}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -350,6 +576,9 @@ export default function Portfolio() {
       />
 
       {renderContent()}
+      
+      {/* Experience Modal */}
+      <ExperienceModal />
     </main>
   )
 }
