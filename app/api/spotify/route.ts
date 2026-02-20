@@ -4,9 +4,9 @@ const SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
 const SPOTIFY_NOW_PLAYING_URL = "https://api.spotify.com/v1/me/player/currently-playing"
 
 async function getAccessToken() {
-  const refresh_token = process.env.SPOTIFY_REFRESH_TOKEN
-  const client_id = process.env.SPOTIFY_CLIENT_ID
-  const client_secret = process.env.SPOTIFY_CLIENT_SECRET
+  const refresh_token = process.env.SPOTIFY_REFRESH_TOKEN?.trim()
+  const client_id = process.env.SPOTIFY_CLIENT_ID?.trim()
+  const client_secret = process.env.SPOTIFY_CLIENT_SECRET?.trim()
 
   console.log("Environment variables check:", {
     refresh_token_exists: !!refresh_token,

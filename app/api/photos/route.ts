@@ -1,132 +1,85 @@
 import { NextResponse } from "next/server"
-import { FilebrowserClient, getFallbackImages } from "@/lib/filebrowser"
+import fs from "fs"
+import path from "path"
 
-/**
- * GET /api/photos
- * 
- * Fetches portfolio photos from self-hosted Filebrowser instance
- * Falls back to local placeholder images if Filebrowser is unavailable
- * 
- * Two modes of operation:
- * 1. Authenticated API calls (using token or credentials)
- * 2. Public share URLs (no authentication needed for visitors)
- */
-export async function GET() {
+// Simple in-memory cache
+let cachedPhotos: any[] | null = null
+let lastCacheTime = 0
+const CACHE_DURATION = 60 * 60 * 1000 // 1 hour
+
+function getPhotos() {
+  const now = Date.now()
+  if (cachedPhotos && (now - lastCacheTime < CACHE_DURATION)) {
+    return cachedPhotos
+  }
+
   try {
-    // Check if we're using public share mode or authenticated mode
-    const usePublicShare = process.env.FILEBROWSER_PUBLIC_SHARE_ENABLED === 'true'
-    const filebrowserUrl = process.env.FILEBROWSER_URL!
+    const photosDirectory = path.join(process.cwd(), "public", "photos")
     
-    if (!filebrowserUrl) {
-      console.warn('FILEBROWSER_URL not configured, using fallback images')
-      return NextResponse.json({ photos: getFallbackImages() })
+    // Check if directory exists
+    if (!fs.existsSync(photosDirectory)) {
+      console.warn("Photos directory not found, creating it...")
+      fs.mkdirSync(photosDirectory, { recursive: true })
+      return []
     }
 
-    // MODE 1: Public Share (Recommended for production - no auth needed per request)
-    if (usePublicShare) {
-      const shareHash = process.env.FILEBROWSER_SHARE_HASH!
-      
-      if (!shareHash) {
-        console.warn('FILEBROWSER_SHARE_HASH not configured, using fallback')
-        return NextResponse.json({ photos: getFallbackImages() })
-      }
+    // Read files from the directory
+    const fileNames = fs.readdirSync(photosDirectory)
+    
+    // Filter for image files
+    const imageExtensions = /\.(jpg|jpeg|png|gif|webp)$/i
+    
+    const photos = fileNames
+      .filter((fileName) => imageExtensions.test(fileName))
+      .map((fileName) => {
+        const filePath = path.join(photosDirectory, fileName)
+        const stats = fs.statSync(filePath)
+        
+        return {
+          id: fileName,
+          url: `/photos/${fileName}`,
+          name: fileName,
+          uploadedAt: stats.birthtime.toISOString(),
+          size: stats.size
+        }
+      })
+      // Sort by creation time (newest first)
+      .sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime())
 
-      try {
-        // Fetch files from public share
-        const files = await FilebrowserClient.listPublicShareFiles(
-          `${filebrowserUrl}/share/${shareHash}`
-        )
-
-        // Filter and map to image files
-        const imageExtensions = /\.(jpg|jpeg|png|gif|webp|bmp)$/i
-        const photos = files
-          .filter((file) => imageExtensions.test(file.name))
-          .map((file) => ({
-            id: file.path,
-            url: `/api/photos/proxy?hash=${shareHash}&name=${encodeURIComponent(file.name)}`,
-            uploadedAt: file.modified,
-            name: file.name,
-            size: file.size,
-          }))
-          .sort((a, b) => 
-            new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
-          )
-
-        return NextResponse.json({ photos })
-      } catch (error) {
-        console.error('Failed to fetch from public share, using fallback:', error)
-        return NextResponse.json({ photos: getFallbackImages() })
-      }
-    }
-
-    // MODE 2: Authenticated API calls (uses token or username/password)
-    const filebrowserClient = new FilebrowserClient({
-      baseUrl: filebrowserUrl,
-      token: process.env.FILEBROWSER_TOKEN,
-      username: process.env.FILEBROWSER_USERNAME,
-      password: process.env.FILEBROWSER_PASSWORD,
-    })
-
-    // Health check before attempting to fetch
-    const isHealthy = await filebrowserClient.healthCheck()
-    if (!isHealthy) {
-      console.warn('Filebrowser health check failed, using fallback images')
-      return NextResponse.json({ photos: getFallbackImages() })
-    }
-
-    // Fetch photos from the configured directory
-    const directoryPath = process.env.FILEBROWSER_PHOTOS_PATH || '/my_data/portfolio_pics'
-    const photos = await filebrowserClient.getPortfolioPhotos(directoryPath)
-
-    return NextResponse.json({ photos })
-
+    cachedPhotos = photos
+    lastCacheTime = now
+    return photos
+    
   } catch (error) {
-    console.error('Failed to fetch photos from Filebrowser:', error)
-    
-    // Return fallback images when Filebrowser is offline/unreachable
-    return NextResponse.json({ 
-      photos: getFallbackImages(),
-      error: 'Using fallback images - Filebrowser temporarily unavailable'
-    })
+    console.error("Failed to read photos directory:", error)
+    return []
   }
 }
 
-/**
- * POST /api/photos/create-share
- * 
- * Helper endpoint to create a public share for your portfolio folder
- * Call this once to generate a persistent share hash
- * 
- * Usage: POST /api/photos with body { "createShare": true }
- */
-export async function POST(request: Request) {
+export async function GET(request: Request) {
   try {
-    const body = await request.json()
+    const { searchParams } = new URL(request.url)
+    const limit = parseInt(searchParams.get("limit") || "0")
+    const page = parseInt(searchParams.get("page") || "1")
     
-    if (body.createShare) {
-      const filebrowserUrl = process.env.FILEBROWSER_URL!
-      const directoryPath = process.env.FILEBROWSER_PHOTOS_PATH || '/my_data/portfolio_pics'
-
-      const client = new FilebrowserClient({
-        baseUrl: filebrowserUrl,
-        token: process.env.FILEBROWSER_TOKEN,
-        username: process.env.FILEBROWSER_USERNAME,
-        password: process.env.FILEBROWSER_PASSWORD,
-      })
-
-      const shareUrl = await client.createPublicShare(directoryPath)
-      const shareHash = shareUrl.split('/share/')[1]
-
+    const allPhotos = getPhotos()
+    
+    if (limit > 0) {
+      const startIndex = (page - 1) * limit
+      const endIndex = startIndex + limit
+      const paginatedPhotos = allPhotos.slice(startIndex, endIndex)
+      
       return NextResponse.json({ 
-        shareUrl,
-        shareHash,
-        message: 'Add this hash to your .env.local as FILEBROWSER_SHARE_HASH'
+        photos: paginatedPhotos,
+        total: allPhotos.length,
+        hasMore: endIndex < allPhotos.length
       })
     }
 
-    return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+    return NextResponse.json({ photos: allPhotos, total: allPhotos.length })
+    
   } catch (error) {
-    console.error('Failed to create share:', error)
-    return NextResponse.json({ error: 'Failed to create share' }, { status: 500 })
+    console.error("Failed to fetch photos:", error)
+    return NextResponse.json({ photos: [] })
   }
 }

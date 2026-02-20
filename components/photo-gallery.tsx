@@ -52,8 +52,8 @@ function PhotoItem({ photo, index, onOpenLightbox, onDelete, deleting, isPreload
         }
       },
       {
-        rootMargin: "100px",
-        threshold: 0.1,
+        rootMargin: "200px", // Increased margin for smoother loading
+        threshold: 0,
       },
     )
 
@@ -94,32 +94,15 @@ function PhotoItem({ photo, index, onOpenLightbox, onDelete, deleting, isPreload
               isPreloaded ? "opacity-100" : isLoaded ? "opacity-100" : "opacity-0"
             }`}
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-            quality={60}
+            quality={60} // Optimized quality for grid
             onLoad={() => setIsLoaded(true)}
             onError={() => setHasError(true)}
-            priority={isPreloaded || index < 8}
+            priority={index < 4} // Prioritize first few images
+            loading={index < 8 ? "eager" : "lazy"}
           />
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
         </div>
       )}
-
-      {/* Delete button - commented out for public view */}
-      {/*
-      <button
-        onClick={(e) => {
-          e.stopPropagation()
-          onDelete(photo.id)
-        }}
-        disabled={deleting === photo.id}
-        className="absolute top-2 right-2 p-2 bg-red-600/80 hover:bg-red-600 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 disabled:opacity-50"
-      >
-        {deleting === photo.id ? (
-          <Loader2 className="w-4 h-4 text-white animate-spin" />
-        ) : (
-          <Trash2 className="w-4 h-4 text-white" />
-        )}
-      </button>
-      */}
     </div>
   )
 }
@@ -129,28 +112,40 @@ export function PhotoGallery({ preloadedPhotos = [], preloadedUrls = new Set() }
   const [loading, setLoading] = useState(preloadedPhotos.length === 0)
   const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
-  const [displayCount, setDisplayCount] = useState(12)
+  
+  // Pagination state
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const LIMIT = 12
 
-  const fetchPhotos = async () => {
-    // If we already have preloaded photos, use them
-    if (preloadedPhotos.length > 0) {
-      setPhotos(preloadedPhotos)
-      setLoading(false)
-      return
-    }
-
+  const fetchPhotos = useCallback(async (pageNum: number, isInitial = false) => {
     try {
-      const response = await fetch("/api/photos")
+      if (!isInitial) setIsLoadingMore(true)
+      
+      const response = await fetch(`/api/photos?page=${pageNum}&limit=${LIMIT}`)
       if (response.ok) {
         const data = await response.json()
-        setPhotos(data.photos || [])
+        const newPhotos = data.photos || []
+        
+        if (newPhotos.length < LIMIT) {
+          setHasMore(false)
+        }
+
+        setPhotos((prev) => {
+          // Avoid duplicates
+          const existingIds = new Set(prev.map(p => p.id))
+          const uniqueNewPhotos = newPhotos.filter((p: Photo) => !existingIds.has(p.id))
+          return [...prev, ...uniqueNewPhotos]
+        })
       }
     } catch (error) {
       console.error("Failed to fetch photos:", error)
     } finally {
       setLoading(false)
+      setIsLoadingMore(false)
     }
-  }
+  }, [])
 
   const deletePhoto = async (photoId: string) => {
     if (!confirm("Are you sure you want to delete this photo?")) return
@@ -197,8 +192,10 @@ export function PhotoGallery({ preloadedPhotos = [], preloadedUrls = new Set() }
     }
   }
 
-  const loadMorePhotos = () => {
-    setDisplayCount((prev) => prev + 12)
+  const handleLoadMore = () => {
+    const nextPage = page + 1
+    setPage(nextPage)
+    fetchPhotos(nextPage)
   }
 
   // Keyboard navigation
@@ -221,19 +218,29 @@ export function PhotoGallery({ preloadedPhotos = [], preloadedUrls = new Set() }
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [selectedPhoto])
+  }, [selectedPhoto, photos.length])
 
-  // Update photos when preloaded photos change
+  // Initial load effect
   useEffect(() => {
     if (preloadedPhotos.length > 0) {
       setPhotos(preloadedPhotos)
       setLoading(false)
+      
+      // If we only have the first batch, we probably have more
+      if (preloadedPhotos.length === LIMIT) {
+        setHasMore(true)
+        // Don't fetch the next page automatically, let the user click "Load More"
+        // setPage(2)
+        // fetchPhotos(2)
+      } else if (preloadedPhotos.length < LIMIT) {
+        // If we got less than limit, assume we're done
+        setHasMore(false)
+      }
+    } else {
+      // If no preloaded photos, fetch the first page
+      fetchPhotos(1, true)
     }
-  }, [preloadedPhotos])
-
-  useEffect(() => {
-    fetchPhotos()
-  }, [])
+  }, [preloadedPhotos, fetchPhotos])
 
   if (loading) {
     return (
@@ -259,13 +266,10 @@ export function PhotoGallery({ preloadedPhotos = [], preloadedUrls = new Set() }
     )
   }
 
-  const displayedPhotos = photos.slice(0, displayCount)
-  const hasMorePhotos = photos.length > displayCount
-
   return (
     <>
       <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {displayedPhotos.map((photo, index) => (
+        {photos.map((photo, index) => (
           <PhotoItem
             key={photo.id}
             photo={photo}
@@ -278,20 +282,29 @@ export function PhotoGallery({ preloadedPhotos = [], preloadedUrls = new Set() }
         ))}
       </div>
 
-      {hasMorePhotos && (
+      {/* Load More Trigger */}
+      {hasMore && (
         <div className="text-center mt-12">
           <button
-            onClick={loadMorePhotos}
-            className="px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white font-inter text-sm transition-all duration-300"
+            onClick={handleLoadMore}
+            disabled={isLoadingMore}
+            className="px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white font-inter text-sm transition-all duration-300 disabled:opacity-50"
           >
-            Load More Photos ({photos.length - displayCount} remaining)
+            {isLoadingMore ? (
+              <span className="flex items-center gap-2">
+                <LoaderIcon className="w-4 h-4 animate-spin" />
+                Loading...
+              </span>
+            ) : (
+              `Load More Photos`
+            )}
           </button>
         </div>
       )}
 
       {/* Lightbox */}
       {selectedPhoto !== null && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
           <button
             onClick={closeLightbox}
             className="absolute top-4 right-4 p-3 bg-zinc-900/80 hover:bg-zinc-800 rounded-full transition-colors z-10"
@@ -316,14 +329,14 @@ export function PhotoGallery({ preloadedPhotos = [], preloadedUrls = new Set() }
             </>
           )}
 
-          <div className="relative max-w-full max-h-full">
+          <div className="relative w-full h-[80vh] max-w-5xl mx-auto">
             <Image
               src={photos[selectedPhoto].url || "/placeholder.svg"}
               alt="Full size photo"
-              width={1200}
-              height={800}
-              className="max-w-full max-h-[90vh] object-contain rounded-lg"
-              quality={85}
+              fill
+              className="object-contain"
+              sizes="100vw"
+              quality={90}
               priority
             />
           </div>
@@ -333,21 +346,6 @@ export function PhotoGallery({ preloadedPhotos = [], preloadedUrls = new Set() }
               {selectedPhoto + 1} of {photos.length}
             </span>
           </div>
-
-          {/* Delete button in lightbox - commented out for public view */}
-          {/*
-          <button
-            onClick={() => deletePhoto(photos[selectedPhoto].id)}
-            disabled={deleting === photos[selectedPhoto].id}
-            className="absolute bottom-4 right-4 p-3 bg-red-600/80 hover:bg-red-600 rounded-full transition-colors disabled:opacity-50"
-          >
-            {deleting === photos[selectedPhoto].id ? (
-              <Loader2 className="w-5 h-5 text-white animate-spin" />
-            ) : (
-              <Trash2 className="w-5 h-5 text-white" />
-            )}
-          </button>
-          */}
         </div>
       )}
     </>

@@ -7,15 +7,18 @@ export default function SpotifySetup() {
   const [refreshToken, setRefreshToken] = useState("")
   const [loading, setLoading] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [redirectUri, setRedirectUri] = useState("")
 
-  const CLIENT_ID = "39645a567ce04ca5b18b9f9fcd401230"
-  const REDIRECT_URI = "https://final-portfolio-lemon-gamma.vercel.app/spotify-setup"
-
-  const authUrl = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=user-read-currently-playing user-read-playback-state`
+  const CLIENT_ID = "c8ae26952d2b4beba277ec8e67354e7e"
+  
+  const authUrl = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user-read-currently-playing user-read-playback-state`
 
   // Handle mounting and URL parsing
   useEffect(() => {
     setMounted(true)
+    // Dynamically set redirect URI based on current origin
+    setRedirectUri(`${window.location.origin}/spotify-setup`)
+    
     const urlParams = new URLSearchParams(window.location.search)
     const codeFromUrl = urlParams.get("code")
     if (codeFromUrl) {
@@ -31,7 +34,10 @@ export default function SpotifySetup() {
       const response = await fetch("/api/spotify-auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code }),
+        body: JSON.stringify({ 
+          code,
+          redirect_uri: redirectUri 
+        }),
       })
 
       const data = await response.json()
@@ -39,6 +45,7 @@ export default function SpotifySetup() {
         setRefreshToken(data.refresh_token)
       } else {
         console.error("Error getting refresh token:", data)
+        alert(`Error: ${data.error || 'Unknown error'}`)
       }
     } catch (error) {
       console.error("Error:", error)
@@ -68,8 +75,8 @@ export default function SpotifySetup() {
             <p className="text-zinc-400 mb-4">
               Before clicking authorize, make sure your Spotify app has this redirect URI:
             </p>
-            <div className="bg-zinc-800 p-3 rounded font-mono text-sm text-green-400">
-              https://final-portfolio-lemon-gamma.vercel.app/spotify-setup
+            <div className="bg-zinc-800 p-3 rounded font-mono text-sm text-green-400 break-all">
+              {redirectUri}
             </div>
             <div className="mt-4 text-sm text-zinc-400">
               <p>
@@ -120,7 +127,7 @@ export default function SpotifySetup() {
               <p className="text-zinc-400 mb-4">
                 Go to your Vercel project settings and add these environment variables:
               </p>
-              <div className="bg-zinc-800 p-4 rounded font-mono text-sm space-y-1">
+              <div className="bg-zinc-800 p-4 rounded font-mono text-sm space-y-1 overflow-x-auto">
                 <div>
                   <span className="text-blue-400">SPOTIFY_CLIENT_ID</span>=39645a567ce04ca5b18b9f9fcd401230
                 </div>

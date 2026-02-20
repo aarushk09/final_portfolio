@@ -2,11 +2,14 @@ import { NextResponse } from "next/server"
 
 export async function POST(request: Request) {
   try {
-    const { code } = await request.json()
+    const { code, redirect_uri } = await request.json()
 
-    const CLIENT_ID = "39645a567ce04ca5b18b9f9fcd401230"
-    const CLIENT_SECRET = "4a846d68dae24c4b90d9eff0d992087c"
-    const REDIRECT_URI = "https://final-portfolio-lemon-gamma.vercel.app/spotify-setup"
+    const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID?.trim()
+    const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET?.trim()
+    if (!CLIENT_ID || !CLIENT_SECRET) {
+      return NextResponse.json({ error: "SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET must be set in .env.local" }, { status: 500 })
+    }
+    const REDIRECT_URI = redirect_uri || "https://final-portfolio-lemon-gamma.vercel.app/spotify-setup"
 
     console.log("Exchanging code for token...")
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useRef } from "react"
 
 interface Photo {
   id: string
@@ -20,6 +20,9 @@ export function usePhotoPreloader() {
     preloadedUrls: new Set(),
     isPreloading: false,
   })
+  
+  // Use a ref to track if we've already started preloading to prevent double-firing
+  const hasStartedRef = useRef(false)
 
   const preloadImage = useCallback((url: string): Promise<void> => {
     return new Promise((resolve, reject) => {
@@ -31,13 +34,14 @@ export function usePhotoPreloader() {
   }, [])
 
   const startPreloading = useCallback(async () => {
-    if (state.isPreloading) return
-
+    if (state.isPreloading || hasStartedRef.current) return
+    
+    hasStartedRef.current = true
     setState((prev) => ({ ...prev, isPreloading: true }))
 
     try {
-      // Fetch photo list
-      const response = await fetch("/api/photos")
+      // Fetch only first 12 photos for initial load
+      const response = await fetch("/api/photos?limit=12&page=1")
       if (!response.ok) return
 
       const data = await response.json()
@@ -45,37 +49,26 @@ export function usePhotoPreloader() {
 
       setState((prev) => ({ ...prev, photos }))
 
-      // Preload first 12 images in batches of 4 for better performance
-      const imagesToPreload = photos.slice(0, 12)
-      const batchSize = 4
-      const preloadedUrls = new Set<string>()
-
-      for (let i = 0; i < imagesToPreload.length; i += batchSize) {
-        const batch = imagesToPreload.slice(i, i + batchSize)
+      // Preload the images
+      const batchSize = 6
+      
+      for (let i = 0; i < photos.length; i += batchSize) {
+        const batch = photos.slice(i, i + batchSize)
 
         // Preload batch in parallel
-        const batchPromises = batch.map(async (photo: Photo) => {
-          try {
-            await preloadImage(photo.url)
-            preloadedUrls.add(photo.url)
-            return photo.url
-          } catch (error) {
-            console.warn(`Failed to preload image: ${photo.url}`)
-            return null
-          }
-        })
-
-        await Promise.allSettled(batchPromises)
-
-        setState((prev) => ({
-          ...prev,
-          preloadedUrls: new Set([...prev.preloadedUrls, ...preloadedUrls]),
-        }))
-
-        // Small delay between batches
-        if (i + batchSize < imagesToPreload.length) {
-          await new Promise((resolve) => setTimeout(resolve, 100))
-        }
+        await Promise.allSettled(
+          batch.map(async (photo: Photo) => {
+            try {
+              await preloadImage(photo.url)
+              setState(prev => ({
+                ...prev,
+                preloadedUrls: new Set(prev.preloadedUrls).add(photo.url)
+              }))
+            } catch (err) {
+              console.warn(`Failed to preload image: ${photo.url}`)
+            }
+          })
+        )
       }
     } catch (error) {
       console.error("Failed to preload photos:", error)
