@@ -10,14 +10,20 @@ export default function SpotifySetup() {
   const [redirectUri, setRedirectUri] = useState("")
 
   const CLIENT_ID = "c8ae26952d2b4beba277ec8e67354e7e"
-  
+  const CLIENT_SECRET = "3880fe4b46be465ebae5a10b6a62e00f"
+
   const authUrl = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user-read-currently-playing user-read-playback-state`
 
   // Handle mounting and URL parsing
   useEffect(() => {
     setMounted(true)
-    // Dynamically set redirect URI based on current origin
-    setRedirectUri(`${window.location.origin}/spotify-setup`)
+    // Spotify requires loopback IP (127.0.0.1), not "localhost"
+    const port = window.location.port || "3000"
+    const base =
+      window.location.hostname === "localhost"
+        ? `http://127.0.0.1:${port}`
+        : window.location.origin
+    setRedirectUri(`${base}/spotify-setup`)
     
     const urlParams = new URLSearchParams(window.location.search)
     const codeFromUrl = urlParams.get("code")
@@ -129,10 +135,10 @@ export default function SpotifySetup() {
               </p>
               <div className="bg-zinc-800 p-4 rounded font-mono text-sm space-y-1 overflow-x-auto">
                 <div>
-                  <span className="text-blue-400">SPOTIFY_CLIENT_ID</span>=39645a567ce04ca5b18b9f9fcd401230
+                  <span className="text-blue-400">SPOTIFY_CLIENT_ID</span>={CLIENT_ID}
                 </div>
                 <div>
-                  <span className="text-blue-400">SPOTIFY_CLIENT_SECRET</span>=4a846d68dae24c4b90d9eff0d992087c
+                  <span className="text-blue-400">SPOTIFY_CLIENT_SECRET</span>={CLIENT_SECRET}
                 </div>
                 <div>
                   <span className="text-blue-400">SPOTIFY_REFRESH_TOKEN</span>={refreshToken}
