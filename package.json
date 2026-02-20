@@ -6,7 +6,8 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "compress-photos": "node scripts/compress-photos.mjs"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.0.2",
@@ -23,6 +24,7 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "sharp": "^0.33.5",
     "@types/node": "^22",
     "@types/react": "^18",
     "@types/react-dom": "^18",
