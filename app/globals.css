@@ -103,3 +103,351 @@ body {
     @apply border-border;
   }
 }
+
+/* =============================================
+   PIXEL MODE - Retro-Futuristic Theme
+   ============================================= */
+
+/* --- Transition for smooth mode switching --- */
+.pixel-mode *,
+.pixel-mode *::before,
+.pixel-mode *::after {
+  transition-property: font-family, background-color, border-color, color, box-shadow, border-radius;
+  transition-duration: 0.35s;
+  transition-timing-function: ease-in-out;
+}
+
+/* --- Base: font + background --- */
+.pixel-mode body {
+  font-family: var(--font-pixel), monospace !important;
+  background-color: #08080f !important;
+  color: #d0d0d8 !important;
+  font-size: 10px;
+  line-height: 2;
+  image-rendering: auto;
+}
+
+/* Override ALL font families to pixel in pixel-mode */
+.pixel-mode .font-inter,
+.pixel-mode .font-crimson-text,
+.pixel-mode .font-instrument-serif,
+.pixel-mode [class*="font-inter"],
+.pixel-mode [class*="font-crimson"] {
+  font-family: var(--font-pixel), monospace !important;
+}
+
+/* --- Heading sizes (pixel font is wider, so scale down) --- */
+.pixel-mode h1,
+.pixel-mode .text-6xl,
+.pixel-mode .text-5xl,
+.pixel-mode .text-7xl {
+  font-size: 1.5rem !important;
+  line-height: 1.6 !important;
+  letter-spacing: 0.05em;
+}
+
+.pixel-mode h2,
+.pixel-mode .text-4xl,
+.pixel-mode .text-3xl {
+  font-size: 1.1rem !important;
+  line-height: 1.6 !important;
+}
+
+.pixel-mode h3,
+.pixel-mode .text-2xl {
+  font-size: 0.85rem !important;
+  line-height: 1.6 !important;
+}
+
+.pixel-mode h4,
+.pixel-mode .text-xl {
+  font-size: 0.75rem !important;
+  line-height: 1.6 !important;
+}
+
+.pixel-mode p,
+.pixel-mode .text-lg {
+  font-size: 0.625rem !important;
+  line-height: 2 !important;
+}
+
+.pixel-mode .text-sm,
+.pixel-mode .text-xs {
+  font-size: 0.5rem !important;
+  line-height: 2 !important;
+}
+
+.pixel-mode .uppercase {
+  letter-spacing: 0.2em;
+}
+
+/* --- Kill all border-radius (sharp pixel corners) --- */
+.pixel-mode *:not(img):not([data-photo]):not(video) {
+  border-radius: 0 !important;
+}
+
+/* --- Card styling --- */
+.pixel-mode .bg-white\/5,
+.pixel-mode .bg-white\/10,
+.pixel-mode [class*="bg-white/"] {
+  background-color: rgba(8, 8, 20, 0.9) !important;
+  border: 2px solid rgba(0, 255, 213, 0.25) !important;
+  box-shadow: 0 0 12px rgba(0, 255, 213, 0.08), inset 0 0 12px rgba(0, 255, 213, 0.03) !important;
+}
+
+.pixel-mode .bg-white\/5:hover,
+.pixel-mode .bg-white\/10:hover,
+.pixel-mode [class*="bg-white/"]:hover {
+  border-color: rgba(0, 255, 213, 0.5) !important;
+  box-shadow: 0 0 20px rgba(0, 255, 213, 0.15), inset 0 0 20px rgba(0, 255, 213, 0.05) !important;
+}
+
+/* --- Tags / pills --- */
+.pixel-mode .bg-zinc-800,
+.pixel-mode [class*="rounded-full"][class*="bg-zinc"] {
+  background-color: rgba(0, 255, 213, 0.08) !important;
+  border: 1px solid rgba(0, 255, 213, 0.3) !important;
+  color: #00ffd5 !important;
+}
+
+/* --- Button overrides --- */
+.pixel-mode button {
+  border-radius: 0 !important;
+}
+
+.pixel-mode .bg-zinc-900\/80 {
+  background-color: rgba(8, 8, 20, 0.95) !important;
+  border: 2px solid rgba(0, 255, 213, 0.3) !important;
+}
+
+/* --- Text colors in pixel mode --- */
+.pixel-mode .text-white {
+  color: #e8e8f0 !important;
+}
+
+.pixel-mode .text-zinc-400 {
+  color: #7a7a8e !important;
+}
+
+.pixel-mode .text-zinc-500 {
+  color: #00ffd5 !important;
+  text-shadow: 0 0 8px rgba(0, 255, 213, 0.3);
+}
+
+.pixel-mode .text-zinc-300 {
+  color: #b0b0c0 !important;
+}
+
+.pixel-mode .text-zinc-100 {
+  color: #d8d8e8 !important;
+}
+
+/* --- Border colors --- */
+.pixel-mode .border-white\/10,
+.pixel-mode .border-white\/20,
+.pixel-mode [class*="border-white/"],
+.pixel-mode .border-zinc-700\/50,
+.pixel-mode [class*="border-zinc"] {
+  border-color: rgba(0, 255, 213, 0.2) !important;
+}
+
+/* --- Background gradients become solid dark --- */
+.pixel-mode .bg-gradient-to-br,
+.pixel-mode .bg-gradient-to-b,
+.pixel-mode .bg-gradient-to-t,
+.pixel-mode [class*="bg-gradient"] {
+  background: #08080f !important;
+}
+
+/* --- Dot grid becomes visible pixel grid --- */
+.pixel-mode .fixed.inset-0 .absolute.inset-0[style*="radial-gradient"] {
+  opacity: 0.4 !important;
+}
+
+/* --- Backdrop blur reduced for sharper pixel feel --- */
+.pixel-mode .backdrop-blur-sm,
+.pixel-mode .backdrop-blur-md,
+.pixel-mode .backdrop-blur-xl {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* --- Selection color --- */
+.pixel-mode ::selection {
+  background-color: rgba(0, 255, 213, 0.3);
+  color: #ffffff;
+}
+
+/* --- Scrollbar styling --- */
+.pixel-mode ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.pixel-mode ::-webkit-scrollbar-track {
+  background: #08080f;
+}
+
+.pixel-mode ::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 213, 0.3);
+  border: 1px solid rgba(0, 255, 213, 0.15);
+}
+
+.pixel-mode ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 255, 213, 0.5);
+}
+
+/* --- Navigation sidebar in pixel mode --- */
+.pixel-mode nav.fixed {
+  background-color: rgba(8, 8, 20, 0.98) !important;
+  border-left: 2px solid rgba(0, 255, 213, 0.3) !important;
+}
+
+.pixel-mode nav.fixed button {
+  border: 2px solid transparent !important;
+}
+
+.pixel-mode nav.fixed button:hover {
+  background-color: rgba(0, 255, 213, 0.05) !important;
+  border-color: rgba(0, 255, 213, 0.2) !important;
+}
+
+.pixel-mode nav.fixed .bg-white\/10 {
+  background-color: rgba(0, 255, 213, 0.08) !important;
+  border: 2px solid rgba(0, 255, 213, 0.3) !important;
+}
+
+/* Active indicator dot becomes a square */
+.pixel-mode .w-2.h-2.bg-white.rounded-full {
+  background-color: #00ffd5 !important;
+  box-shadow: 0 0 8px rgba(0, 255, 213, 0.6);
+}
+
+/* --- CRT Scanline overlay --- */
+.pixel-mode body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.06) 2px,
+    rgba(0, 0, 0, 0.06) 4px
+  );
+  opacity: 0.5;
+}
+
+/* --- Pixel grid background overlay --- */
+.pixel-mode body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background-image:
+    linear-gradient(rgba(0, 255, 213, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 213, 0.03) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+/* --- IMAGE PROTECTION: Never pixelate photos --- */
+.pixel-mode img,
+.pixel-mode video,
+.pixel-mode [data-photo],
+.pixel-mode picture,
+.pixel-mode canvas {
+  image-rendering: auto !important;
+  -webkit-image-rendering: auto !important;
+}
+
+/* --- Neon accent link/underline glow --- */
+.pixel-mode a:hover {
+  color: #00ffd5 !important;
+  text-shadow: 0 0 8px rgba(0, 255, 213, 0.4);
+}
+
+/* --- Experience modal in pixel mode --- */
+.pixel-mode .fixed.inset-0.z-50 .bg-zinc-900 {
+  background-color: #0a0a18 !important;
+  border: 2px solid rgba(0, 255, 213, 0.3) !important;
+  box-shadow: 0 0 30px rgba(0, 255, 213, 0.1), 0 0 60px rgba(0, 255, 213, 0.05) !important;
+}
+
+/* --- Spotify widget in pixel mode --- */
+.pixel-mode [class*="spotify"],
+.pixel-mode .bg-zinc-900\/90 {
+  background-color: rgba(8, 8, 20, 0.95) !important;
+  border: 2px solid rgba(0, 255, 213, 0.2) !important;
+}
+
+/* Spotify progress bar */
+.pixel-mode .bg-emerald-400,
+.pixel-mode .bg-emerald-500 {
+  background-color: #00ffd5 !important;
+  box-shadow: 0 0 6px rgba(0, 255, 213, 0.5);
+}
+
+/* --- Neon magenta accent for secondary elements --- */
+.pixel-mode .bg-white {
+  background-color: #ff00aa !important;
+  box-shadow: 0 0 8px rgba(255, 0, 170, 0.3);
+}
+
+/* --- Cursor blink animation for pixel mode title --- */
+@keyframes pixel-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes pixel-glow {
+  0%, 100% { text-shadow: 0 0 10px rgba(0, 255, 213, 0.3); }
+  50% { text-shadow: 0 0 20px rgba(0, 255, 213, 0.6), 0 0 40px rgba(0, 255, 213, 0.2); }
+}
+
+.pixel-mode h1 {
+  animation: pixel-glow 3s ease-in-out infinite;
+}
+
+/* --- Hover glow on interactive elements --- */
+.pixel-mode .group:hover {
+  box-shadow: 0 0 24px rgba(0, 255, 213, 0.12) !important;
+}
+
+/* --- Photo gallery: keep images pristine --- */
+.pixel-mode .photo-gallery img {
+  image-rendering: auto !important;
+  border: 2px solid rgba(0, 255, 213, 0.15) !important;
+}
+
+.pixel-mode .photo-gallery img:hover {
+  border-color: rgba(0, 255, 213, 0.4) !important;
+  box-shadow: 0 0 20px rgba(0, 255, 213, 0.15) !important;
+}
+
+/* --- Responsive pixel mode adjustments --- */
+@media (max-width: 768px) {
+  .pixel-mode h1,
+  .pixel-mode .text-6xl,
+  .pixel-mode .text-5xl,
+  .pixel-mode .text-7xl {
+    font-size: 1rem !important;
+  }
+
+  .pixel-mode h2,
+  .pixel-mode .text-4xl,
+  .pixel-mode .text-3xl {
+    font-size: 0.85rem !important;
+  }
+
+  .pixel-mode h3,
+  .pixel-mode .text-2xl {
+    font-size: 0.7rem !important;
+  }
+
+  .pixel-mode p,
+  .pixel-mode .text-lg {
+    font-size: 0.55rem !important;
+  }
+}

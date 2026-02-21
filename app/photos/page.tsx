@@ -3,6 +3,7 @@
 import { SpotifyWidget } from "@/components/spotify-widget"
 import { Navigation } from "@/components/navigation"
 import { PhotoGallery } from "@/components/photo-gallery"
+import { PixelModeToggle } from "@/components/pixel-mode-toggle"
 import { usePhotoPreloader } from "@/hooks/usePhotoPreloader"
 import { useState, useEffect } from "react"
 
@@ -53,6 +54,8 @@ export default function PhotosPage() {
       </div>
 
       <SpotifyWidget isVisible={showSpotify && !sidebarOpen} />
+
+      <PixelModeToggle />
 
       <Navigation
         activeTab="photos"

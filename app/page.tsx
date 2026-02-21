@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { SpotifyWidget } from "@/components/spotify-widget"
 import { Navigation } from "@/components/navigation"
 import { PhotoGallery } from "@/components/photo-gallery"
+import { PixelModeToggle } from "@/components/pixel-mode-toggle"
 import { usePhotoPreloader } from "@/hooks/usePhotoPreloader"
 
 export default function Portfolio() {
@@ -567,6 +568,8 @@ export default function Portfolio() {
 
       {/* Only show Spotify widget on portfolio tab */}
       {activeTab === "portfolio" && <SpotifyWidget isVisible={showSpotify && !sidebarOpen} />}
+
+      <PixelModeToggle />
 
       <Navigation
         activeTab={activeTab}

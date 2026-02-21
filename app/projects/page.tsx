@@ -2,6 +2,7 @@
 
 import { SpotifyWidget } from "@/components/spotify-widget"
 import { Navigation } from "@/components/navigation"
+import { PixelModeToggle } from "@/components/pixel-mode-toggle"
 import { useState, useEffect } from "react"
 
 export default function ProjectsPage() {
@@ -34,6 +35,8 @@ export default function ProjectsPage() {
       </div>
 
       <SpotifyWidget isVisible={showSpotify && !sidebarOpen} />
+
+      <PixelModeToggle />
 
       <Navigation
         activeTab="projects"

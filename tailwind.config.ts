@@ -92,6 +92,7 @@ const config: Config = {
       fontFamily: {
         inter: ["var(--font-inter)"],
         "crimson-text": ["var(--font-crimson-text)"],
+        pixel: ["var(--font-pixel)"],
       },
     },
   },
