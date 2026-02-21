@@ -105,29 +105,94 @@ body {
 }
 
 /* =============================================
-   PIXEL MODE - Retro-Futuristic Theme
+   PIXEL MODE - Multi-Theme Retro-Futuristic System
    ============================================= */
 
-/* --- Transition for smooth mode switching --- */
+/* --- CSS Custom Properties per theme --- */
+.pixel-theme-midnight {
+  --pixel-bg: #050510;
+  --pixel-bg-card: rgba(10, 8, 30, 0.92);
+  --pixel-accent: #c9a0ff;
+  --pixel-accent-secondary: #fbbf24;
+  --pixel-accent-rgb: 201, 160, 255;
+  --pixel-accent-secondary-rgb: 251, 191, 36;
+  --pixel-text: #d8d0e8;
+  --pixel-text-muted: #7a6f90;
+  --pixel-border: rgba(201, 160, 255, 0.2);
+  --pixel-border-hover: rgba(201, 160, 255, 0.45);
+  --pixel-glow: rgba(201, 160, 255, 0.12);
+  --pixel-grid-color: rgba(201, 160, 255, 0.025);
+  --pixel-scanline-opacity: 0.3;
+}
+
+.pixel-theme-neo-tokyo {
+  --pixel-bg: #0a0008;
+  --pixel-bg-card: rgba(20, 5, 15, 0.92);
+  --pixel-accent: #ff2d55;
+  --pixel-accent-secondary: #00b4d8;
+  --pixel-accent-rgb: 255, 45, 85;
+  --pixel-accent-secondary-rgb: 0, 180, 216;
+  --pixel-text: #f0e8e8;
+  --pixel-text-muted: #8a6a70;
+  --pixel-border: rgba(255, 45, 85, 0.2);
+  --pixel-border-hover: rgba(255, 45, 85, 0.45);
+  --pixel-glow: rgba(255, 45, 85, 0.12);
+  --pixel-grid-color: rgba(255, 45, 85, 0.025);
+  --pixel-scanline-opacity: 0.35;
+}
+
+.pixel-theme-sakura {
+  --pixel-bg: #faf5f0;
+  --pixel-bg-card: rgba(255, 248, 245, 0.92);
+  --pixel-accent: #d4628a;
+  --pixel-accent-secondary: #c4a060;
+  --pixel-accent-rgb: 212, 98, 138;
+  --pixel-accent-secondary-rgb: 196, 160, 96;
+  --pixel-text: #3a2a2a;
+  --pixel-text-muted: #9a7a7a;
+  --pixel-border: rgba(212, 98, 138, 0.2);
+  --pixel-border-hover: rgba(212, 98, 138, 0.4);
+  --pixel-glow: rgba(212, 98, 138, 0.1);
+  --pixel-grid-color: rgba(212, 98, 138, 0.03);
+  --pixel-scanline-opacity: 0;
+}
+
+.pixel-theme-phosphor {
+  --pixel-bg: #010a01;
+  --pixel-bg-card: rgba(2, 15, 2, 0.92);
+  --pixel-accent: #33ff33;
+  --pixel-accent-secondary: #00aa00;
+  --pixel-accent-rgb: 51, 255, 51;
+  --pixel-accent-secondary-rgb: 0, 170, 0;
+  --pixel-text: #a0f0a0;
+  --pixel-text-muted: #408040;
+  --pixel-border: rgba(51, 255, 51, 0.15);
+  --pixel-border-hover: rgba(51, 255, 51, 0.4);
+  --pixel-glow: rgba(51, 255, 51, 0.1);
+  --pixel-grid-color: rgba(51, 255, 51, 0.03);
+  --pixel-scanline-opacity: 0.5;
+}
+
+/* --- SHARED BASE: applies to ALL pixel themes --- */
+
 .pixel-mode *,
 .pixel-mode *::before,
 .pixel-mode *::after {
   transition-property: font-family, background-color, border-color, color, box-shadow, border-radius;
-  transition-duration: 0.35s;
-  transition-timing-function: ease-in-out;
+  transition-duration: 0.4s;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* --- Base: font + background --- */
 .pixel-mode body {
   font-family: var(--font-pixel), monospace !important;
-  background-color: #08080f !important;
-  color: #d0d0d8 !important;
+  background-color: var(--pixel-bg) !important;
+  color: var(--pixel-text) !important;
   font-size: 10px;
   line-height: 2;
   image-rendering: auto;
 }
 
-/* Override ALL font families to pixel in pixel-mode */
+/* Override ALL font families to pixel */
 .pixel-mode .font-inter,
 .pixel-mode .font-crimson-text,
 .pixel-mode .font-instrument-serif,
@@ -136,220 +201,62 @@ body {
   font-family: var(--font-pixel), monospace !important;
 }
 
-/* --- Heading sizes (pixel font is wider, so scale down) --- */
+/* --- Typography scaling (pixel font is wider) --- */
 .pixel-mode h1,
 .pixel-mode .text-6xl,
 .pixel-mode .text-5xl,
 .pixel-mode .text-7xl {
-  font-size: 1.5rem !important;
-  line-height: 1.6 !important;
-  letter-spacing: 0.05em;
+  font-size: 1.35rem !important;
+  line-height: 1.8 !important;
+  letter-spacing: 0.04em;
 }
 
 .pixel-mode h2,
 .pixel-mode .text-4xl,
 .pixel-mode .text-3xl {
-  font-size: 1.1rem !important;
-  line-height: 1.6 !important;
+  font-size: 1rem !important;
+  line-height: 1.7 !important;
 }
 
 .pixel-mode h3,
 .pixel-mode .text-2xl {
-  font-size: 0.85rem !important;
-  line-height: 1.6 !important;
+  font-size: 0.8rem !important;
+  line-height: 1.7 !important;
 }
 
 .pixel-mode h4,
 .pixel-mode .text-xl {
-  font-size: 0.75rem !important;
-  line-height: 1.6 !important;
+  font-size: 0.7rem !important;
+  line-height: 1.7 !important;
 }
 
 .pixel-mode p,
 .pixel-mode .text-lg {
-  font-size: 0.625rem !important;
-  line-height: 2 !important;
+  font-size: 0.6rem !important;
+  line-height: 2.2 !important;
 }
 
 .pixel-mode .text-sm,
 .pixel-mode .text-xs {
   font-size: 0.5rem !important;
-  line-height: 2 !important;
+  line-height: 2.2 !important;
 }
 
 .pixel-mode .uppercase {
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
 }
 
 /* --- Kill all border-radius (sharp pixel corners) --- */
-.pixel-mode *:not(img):not([data-photo]):not(video) {
+.pixel-mode *:not(img):not([data-photo]):not(video):not(canvas) {
   border-radius: 0 !important;
 }
 
-/* --- Card styling --- */
-.pixel-mode .bg-white\/5,
-.pixel-mode .bg-white\/10,
-.pixel-mode [class*="bg-white/"] {
-  background-color: rgba(8, 8, 20, 0.9) !important;
-  border: 2px solid rgba(0, 255, 213, 0.25) !important;
-  box-shadow: 0 0 12px rgba(0, 255, 213, 0.08), inset 0 0 12px rgba(0, 255, 213, 0.03) !important;
-}
-
-.pixel-mode .bg-white\/5:hover,
-.pixel-mode .bg-white\/10:hover,
-.pixel-mode [class*="bg-white/"]:hover {
-  border-color: rgba(0, 255, 213, 0.5) !important;
-  box-shadow: 0 0 20px rgba(0, 255, 213, 0.15), inset 0 0 20px rgba(0, 255, 213, 0.05) !important;
-}
-
-/* --- Tags / pills --- */
-.pixel-mode .bg-zinc-800,
-.pixel-mode [class*="rounded-full"][class*="bg-zinc"] {
-  background-color: rgba(0, 255, 213, 0.08) !important;
-  border: 1px solid rgba(0, 255, 213, 0.3) !important;
-  color: #00ffd5 !important;
-}
-
-/* --- Button overrides --- */
-.pixel-mode button {
-  border-radius: 0 !important;
-}
-
-.pixel-mode .bg-zinc-900\/80 {
-  background-color: rgba(8, 8, 20, 0.95) !important;
-  border: 2px solid rgba(0, 255, 213, 0.3) !important;
-}
-
-/* --- Text colors in pixel mode --- */
-.pixel-mode .text-white {
-  color: #e8e8f0 !important;
-}
-
-.pixel-mode .text-zinc-400 {
-  color: #7a7a8e !important;
-}
-
-.pixel-mode .text-zinc-500 {
-  color: #00ffd5 !important;
-  text-shadow: 0 0 8px rgba(0, 255, 213, 0.3);
-}
-
-.pixel-mode .text-zinc-300 {
-  color: #b0b0c0 !important;
-}
-
-.pixel-mode .text-zinc-100 {
-  color: #d8d8e8 !important;
-}
-
-/* --- Border colors --- */
-.pixel-mode .border-white\/10,
-.pixel-mode .border-white\/20,
-.pixel-mode [class*="border-white/"],
-.pixel-mode .border-zinc-700\/50,
-.pixel-mode [class*="border-zinc"] {
-  border-color: rgba(0, 255, 213, 0.2) !important;
-}
-
-/* --- Background gradients become solid dark --- */
-.pixel-mode .bg-gradient-to-br,
-.pixel-mode .bg-gradient-to-b,
-.pixel-mode .bg-gradient-to-t,
-.pixel-mode [class*="bg-gradient"] {
-  background: #08080f !important;
-}
-
-/* --- Dot grid becomes visible pixel grid --- */
-.pixel-mode .fixed.inset-0 .absolute.inset-0[style*="radial-gradient"] {
-  opacity: 0.4 !important;
-}
-
-/* --- Backdrop blur reduced for sharper pixel feel --- */
+/* --- Backdrop blur removal for sharp pixel aesthetic --- */
 .pixel-mode .backdrop-blur-sm,
 .pixel-mode .backdrop-blur-md,
 .pixel-mode .backdrop-blur-xl {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-}
-
-/* --- Selection color --- */
-.pixel-mode ::selection {
-  background-color: rgba(0, 255, 213, 0.3);
-  color: #ffffff;
-}
-
-/* --- Scrollbar styling --- */
-.pixel-mode ::-webkit-scrollbar {
-  width: 8px;
-}
-
-.pixel-mode ::-webkit-scrollbar-track {
-  background: #08080f;
-}
-
-.pixel-mode ::-webkit-scrollbar-thumb {
-  background: rgba(0, 255, 213, 0.3);
-  border: 1px solid rgba(0, 255, 213, 0.15);
-}
-
-.pixel-mode ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 255, 213, 0.5);
-}
-
-/* --- Navigation sidebar in pixel mode --- */
-.pixel-mode nav.fixed {
-  background-color: rgba(8, 8, 20, 0.98) !important;
-  border-left: 2px solid rgba(0, 255, 213, 0.3) !important;
-}
-
-.pixel-mode nav.fixed button {
-  border: 2px solid transparent !important;
-}
-
-.pixel-mode nav.fixed button:hover {
-  background-color: rgba(0, 255, 213, 0.05) !important;
-  border-color: rgba(0, 255, 213, 0.2) !important;
-}
-
-.pixel-mode nav.fixed .bg-white\/10 {
-  background-color: rgba(0, 255, 213, 0.08) !important;
-  border: 2px solid rgba(0, 255, 213, 0.3) !important;
-}
-
-/* Active indicator dot becomes a square */
-.pixel-mode .w-2.h-2.bg-white.rounded-full {
-  background-color: #00ffd5 !important;
-  box-shadow: 0 0 8px rgba(0, 255, 213, 0.6);
-}
-
-/* --- CRT Scanline overlay --- */
-.pixel-mode body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9999;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 0, 0, 0.06) 2px,
-    rgba(0, 0, 0, 0.06) 4px
-  );
-  opacity: 0.5;
-}
-
-/* --- Pixel grid background overlay --- */
-.pixel-mode body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: -1;
-  background-image:
-    linear-gradient(rgba(0, 255, 213, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 255, 213, 0.03) 1px, transparent 1px);
-  background-size: 16px 16px;
 }
 
 /* --- IMAGE PROTECTION: Never pixelate photos --- */
@@ -362,92 +269,505 @@ body {
   -webkit-image-rendering: auto !important;
 }
 
-/* --- Neon accent link/underline glow --- */
+/* --- Card / panel styling (shared structure) --- */
+.pixel-mode .bg-white\/5,
+.pixel-mode .bg-white\/10,
+.pixel-mode [class*="bg-white/"] {
+  background-color: var(--pixel-bg-card) !important;
+  border: 1px solid var(--pixel-border) !important;
+  box-shadow:
+    0 0 16px var(--pixel-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03) !important;
+}
+
+.pixel-mode .bg-white\/5:hover,
+.pixel-mode .bg-white\/10:hover,
+.pixel-mode [class*="bg-white/"]:hover {
+  border-color: var(--pixel-border-hover) !important;
+  box-shadow:
+    0 0 24px var(--pixel-glow),
+    0 0 48px rgba(var(--pixel-accent-rgb), 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+/* --- Tags / pills --- */
+.pixel-mode .bg-zinc-800,
+.pixel-mode [class*="rounded-full"][class*="bg-zinc"] {
+  background-color: rgba(var(--pixel-accent-rgb), 0.06) !important;
+  border: 1px solid rgba(var(--pixel-accent-rgb), 0.2) !important;
+  color: var(--pixel-accent) !important;
+}
+
+/* --- Button base overrides --- */
+.pixel-mode button {
+  border-radius: 0 !important;
+}
+
+.pixel-mode .bg-zinc-900\/80 {
+  background-color: var(--pixel-bg-card) !important;
+  border: 1px solid var(--pixel-border) !important;
+}
+
+/* --- Text color overrides (shared) --- */
+.pixel-mode .text-white {
+  color: var(--pixel-text) !important;
+}
+
+.pixel-mode .text-zinc-400 {
+  color: var(--pixel-text-muted) !important;
+}
+
+.pixel-mode .text-zinc-500 {
+  color: var(--pixel-accent) !important;
+  text-shadow: 0 0 8px rgba(var(--pixel-accent-rgb), 0.25);
+}
+
+.pixel-mode .text-zinc-300 {
+  color: var(--pixel-text) !important;
+}
+
+.pixel-mode .text-zinc-100 {
+  color: var(--pixel-text) !important;
+}
+
+/* --- Border color overrides --- */
+.pixel-mode .border-white\/10,
+.pixel-mode .border-white\/20,
+.pixel-mode [class*="border-white/"],
+.pixel-mode .border-zinc-700\/50,
+.pixel-mode [class*="border-zinc"] {
+  border-color: var(--pixel-border) !important;
+}
+
+/* --- Gradients become solid bg --- */
+.pixel-mode .bg-gradient-to-br,
+.pixel-mode .bg-gradient-to-b,
+.pixel-mode .bg-gradient-to-t,
+.pixel-mode [class*="bg-gradient"] {
+  background: var(--pixel-bg) !important;
+}
+
+/* --- Selection color --- */
+.pixel-mode ::selection {
+  background-color: rgba(var(--pixel-accent-rgb), 0.3);
+  color: var(--pixel-text);
+}
+
+/* --- Scrollbar --- */
+.pixel-mode ::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pixel-mode ::-webkit-scrollbar-track {
+  background: var(--pixel-bg);
+}
+
+.pixel-mode ::-webkit-scrollbar-thumb {
+  background: rgba(var(--pixel-accent-rgb), 0.25);
+  border: 1px solid rgba(var(--pixel-accent-rgb), 0.1);
+}
+
+.pixel-mode ::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--pixel-accent-rgb), 0.45);
+}
+
+/* --- Navigation sidebar --- */
+.pixel-mode nav.fixed {
+  background-color: color-mix(in srgb, var(--pixel-bg) 98%, transparent) !important;
+  border-left: 1px solid var(--pixel-border) !important;
+}
+
+.pixel-mode nav.fixed button {
+  border: 1px solid transparent !important;
+}
+
+.pixel-mode nav.fixed button:hover {
+  background-color: rgba(var(--pixel-accent-rgb), 0.05) !important;
+  border-color: var(--pixel-border) !important;
+}
+
+.pixel-mode nav.fixed .bg-white\/10 {
+  background-color: rgba(var(--pixel-accent-rgb), 0.06) !important;
+  border: 1px solid rgba(var(--pixel-accent-rgb), 0.2) !important;
+}
+
+/* Active indicator dot */
+.pixel-mode .w-2.h-2.bg-white.rounded-full {
+  background-color: var(--pixel-accent) !important;
+  box-shadow: 0 0 6px rgba(var(--pixel-accent-rgb), 0.5);
+}
+
+/* --- Hover glow on interactive groups --- */
+.pixel-mode .group:hover {
+  box-shadow: 0 0 20px var(--pixel-glow) !important;
+}
+
+/* --- Link hover --- */
 .pixel-mode a:hover {
-  color: #00ffd5 !important;
-  text-shadow: 0 0 8px rgba(0, 255, 213, 0.4);
+  color: var(--pixel-accent) !important;
+  text-shadow: 0 0 6px rgba(var(--pixel-accent-rgb), 0.35);
 }
 
-/* --- Experience modal in pixel mode --- */
+/* --- Experience modal --- */
 .pixel-mode .fixed.inset-0.z-50 .bg-zinc-900 {
-  background-color: #0a0a18 !important;
-  border: 2px solid rgba(0, 255, 213, 0.3) !important;
-  box-shadow: 0 0 30px rgba(0, 255, 213, 0.1), 0 0 60px rgba(0, 255, 213, 0.05) !important;
+  background-color: var(--pixel-bg-card) !important;
+  border: 1px solid var(--pixel-border) !important;
+  box-shadow: 0 0 40px var(--pixel-glow), 0 0 80px rgba(var(--pixel-accent-rgb), 0.04) !important;
 }
 
-/* --- Spotify widget in pixel mode --- */
+/* --- Spotify widget --- */
 .pixel-mode [class*="spotify"],
 .pixel-mode .bg-zinc-900\/90 {
-  background-color: rgba(8, 8, 20, 0.95) !important;
-  border: 2px solid rgba(0, 255, 213, 0.2) !important;
+  background-color: var(--pixel-bg-card) !important;
+  border: 1px solid var(--pixel-border) !important;
 }
 
-/* Spotify progress bar */
 .pixel-mode .bg-emerald-400,
 .pixel-mode .bg-emerald-500 {
-  background-color: #00ffd5 !important;
-  box-shadow: 0 0 6px rgba(0, 255, 213, 0.5);
+  background-color: var(--pixel-accent) !important;
+  box-shadow: 0 0 6px rgba(var(--pixel-accent-rgb), 0.4);
 }
 
-/* --- Neon magenta accent for secondary elements --- */
+/* --- Secondary accent element --- */
 .pixel-mode .bg-white {
-  background-color: #ff00aa !important;
-  box-shadow: 0 0 8px rgba(255, 0, 170, 0.3);
-}
-
-/* --- Cursor blink animation for pixel mode title --- */
-@keyframes pixel-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}
-
-@keyframes pixel-glow {
-  0%, 100% { text-shadow: 0 0 10px rgba(0, 255, 213, 0.3); }
-  50% { text-shadow: 0 0 20px rgba(0, 255, 213, 0.6), 0 0 40px rgba(0, 255, 213, 0.2); }
-}
-
-.pixel-mode h1 {
-  animation: pixel-glow 3s ease-in-out infinite;
-}
-
-/* --- Hover glow on interactive elements --- */
-.pixel-mode .group:hover {
-  box-shadow: 0 0 24px rgba(0, 255, 213, 0.12) !important;
+  background-color: var(--pixel-accent-secondary) !important;
+  box-shadow: 0 0 6px rgba(var(--pixel-accent-secondary-rgb), 0.3);
 }
 
 /* --- Photo gallery: keep images pristine --- */
 .pixel-mode .photo-gallery img {
   image-rendering: auto !important;
-  border: 2px solid rgba(0, 255, 213, 0.15) !important;
+  border: 1px solid var(--pixel-border) !important;
 }
 
 .pixel-mode .photo-gallery img:hover {
-  border-color: rgba(0, 255, 213, 0.4) !important;
-  box-shadow: 0 0 20px rgba(0, 255, 213, 0.15) !important;
+  border-color: var(--pixel-border-hover) !important;
+  box-shadow: 0 0 16px var(--pixel-glow) !important;
 }
 
-/* --- Responsive pixel mode adjustments --- */
+/* --- CRT Scanline overlay (respects per-theme opacity) --- */
+.pixel-mode body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9997;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.04) 2px,
+    rgba(0, 0, 0, 0.04) 4px
+  );
+  opacity: var(--pixel-scanline-opacity);
+}
+
+/* --- Pixel grid background --- */
+.pixel-mode body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background-image:
+    linear-gradient(var(--pixel-grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--pixel-grid-color) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+/* --- Toggle button styling (shared across themes) --- */
+.pixel-mode .pixel-toggle-btn {
+  background-color: var(--pixel-bg-card) !important;
+  border-color: var(--pixel-border) !important;
+  box-shadow: 0 0 12px var(--pixel-glow);
+}
+
+.pixel-mode .pixel-toggle-btn:hover {
+  border-color: var(--pixel-border-hover) !important;
+  box-shadow: 0 0 20px var(--pixel-glow);
+}
+
+/* --- Theme dropdown panel styling --- */
+.pixel-mode .pixel-panel {
+  background-color: color-mix(in srgb, var(--pixel-bg) 97%, var(--pixel-accent) 3%) !important;
+  border-color: var(--pixel-border) !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    0 0 24px var(--pixel-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03) !important;
+}
+
+/* --- Heading glow animation --- */
+@keyframes pixel-glow {
+  0%, 100% { text-shadow: 0 0 8px rgba(var(--pixel-accent-rgb), 0.2); }
+  50% { text-shadow: 0 0 16px rgba(var(--pixel-accent-rgb), 0.4), 0 0 32px rgba(var(--pixel-accent-rgb), 0.15); }
+}
+
+.pixel-mode h1 {
+  animation: pixel-glow 4s ease-in-out infinite;
+}
+
+/* =============================================
+   THEME-SPECIFIC OVERRIDES
+   ============================================= */
+
+/* --- MIDNIGHT CIPHER: subtle amber accents on hover --- */
+.pixel-theme-midnight .bg-white\/5:hover,
+.pixel-theme-midnight .bg-white\/10:hover,
+.pixel-theme-midnight [class*="bg-white/"]:hover {
+  box-shadow:
+    0 0 20px rgba(201, 160, 255, 0.1),
+    0 0 40px rgba(251, 191, 36, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+.pixel-theme-midnight h1 {
+  color: #e0d0f8 !important;
+}
+
+/* --- NEO TOKYO: dual-color split glow, kanji energy --- */
+@keyframes neo-tokyo-glow {
+  0%, 100% {
+    text-shadow:
+      -1px 0 4px rgba(255, 45, 85, 0.3),
+      1px 0 4px rgba(0, 180, 216, 0.3);
+  }
+  50% {
+    text-shadow:
+      -2px 0 12px rgba(255, 45, 85, 0.5),
+      2px 0 12px rgba(0, 180, 216, 0.5),
+      0 0 24px rgba(255, 45, 85, 0.15);
+  }
+}
+
+.pixel-theme-neo-tokyo h1 {
+  animation: neo-tokyo-glow 3s ease-in-out infinite !important;
+  color: #fff0f0 !important;
+}
+
+.pixel-theme-neo-tokyo .bg-white\/5:hover,
+.pixel-theme-neo-tokyo .bg-white\/10:hover {
+  border-color: rgba(255, 45, 85, 0.35) !important;
+  box-shadow:
+    -4px 0 16px rgba(255, 45, 85, 0.08),
+    4px 0 16px rgba(0, 180, 216, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+/* Neo Tokyo tags get secondary accent */
+.pixel-theme-neo-tokyo .bg-zinc-800,
+.pixel-theme-neo-tokyo [class*="rounded-full"][class*="bg-zinc"] {
+  color: var(--pixel-accent-secondary) !important;
+  border-color: rgba(0, 180, 216, 0.25) !important;
+  background-color: rgba(0, 180, 216, 0.06) !important;
+}
+
+/* --- SAKURA: light theme overrides --- */
+.pixel-theme-sakura body {
+  background-color: #faf5f0 !important;
+  color: #3a2a2a !important;
+}
+
+.pixel-theme-sakura .text-white {
+  color: #3a2a2a !important;
+}
+
+.pixel-theme-sakura .text-zinc-100 {
+  color: #4a3535 !important;
+}
+
+.pixel-theme-sakura .text-zinc-300 {
+  color: #5a4040 !important;
+}
+
+.pixel-theme-sakura .text-zinc-400 {
+  color: #9a7a7a !important;
+}
+
+.pixel-theme-sakura .text-zinc-500 {
+  color: #d4628a !important;
+  text-shadow: none;
+}
+
+/* Sakura cards */
+.pixel-theme-sakura .bg-white\/5,
+.pixel-theme-sakura .bg-white\/10,
+.pixel-theme-sakura [class*="bg-white/"] {
+  background-color: rgba(255, 248, 245, 0.85) !important;
+  border: 1px solid rgba(212, 98, 138, 0.15) !important;
+  box-shadow: 0 2px 12px rgba(212, 98, 138, 0.06) !important;
+}
+
+.pixel-theme-sakura .bg-white\/5:hover,
+.pixel-theme-sakura .bg-white\/10:hover,
+.pixel-theme-sakura [class*="bg-white/"]:hover {
+  border-color: rgba(212, 98, 138, 0.3) !important;
+  box-shadow: 0 4px 20px rgba(212, 98, 138, 0.1) !important;
+}
+
+/* Sakura tags */
+.pixel-theme-sakura .bg-zinc-800,
+.pixel-theme-sakura [class*="rounded-full"][class*="bg-zinc"] {
+  background-color: rgba(212, 98, 138, 0.08) !important;
+  border: 1px solid rgba(212, 98, 138, 0.2) !important;
+  color: #c4587a !important;
+}
+
+/* Sakura gradients */
+.pixel-theme-sakura .bg-gradient-to-br,
+.pixel-theme-sakura .bg-gradient-to-b,
+.pixel-theme-sakura .bg-gradient-to-t,
+.pixel-theme-sakura [class*="bg-gradient"] {
+  background: #faf5f0 !important;
+}
+
+/* Sakura navigation */
+.pixel-theme-sakura nav.fixed {
+  background-color: rgba(250, 245, 240, 0.98) !important;
+  border-left: 1px solid rgba(212, 98, 138, 0.15) !important;
+}
+
+.pixel-theme-sakura nav.fixed button:hover {
+  background-color: rgba(212, 98, 138, 0.06) !important;
+}
+
+/* Sakura navigation active button */
+.pixel-theme-sakura nav.fixed .bg-white\/10 {
+  background-color: rgba(212, 98, 138, 0.08) !important;
+  border: 1px solid rgba(212, 98, 138, 0.2) !important;
+}
+
+/* Sakura secondary */
+.pixel-theme-sakura .bg-white {
+  background-color: #d4628a !important;
+  box-shadow: 0 0 8px rgba(212, 98, 138, 0.2);
+}
+
+/* Sakura bg-zinc-900/80 */
+.pixel-theme-sakura .bg-zinc-900\/80 {
+  background-color: rgba(255, 248, 245, 0.95) !important;
+  border: 1px solid rgba(212, 98, 138, 0.15) !important;
+}
+
+/* Sakura scrollbar */
+.pixel-theme-sakura ::-webkit-scrollbar-track {
+  background: #faf5f0;
+}
+
+.pixel-theme-sakura ::-webkit-scrollbar-thumb {
+  background: rgba(212, 98, 138, 0.2);
+  border: 1px solid rgba(212, 98, 138, 0.1);
+}
+
+/* Sakura selection */
+.pixel-theme-sakura ::selection {
+  background-color: rgba(212, 98, 138, 0.25);
+  color: #3a2a2a;
+}
+
+/* Sakura modal */
+.pixel-theme-sakura .fixed.inset-0.z-50 .bg-zinc-900 {
+  background-color: rgba(255, 248, 245, 0.97) !important;
+}
+
+/* Sakura Spotify widget */
+.pixel-theme-sakura [class*="spotify"],
+.pixel-theme-sakura .bg-zinc-900\/90 {
+  background-color: rgba(255, 248, 245, 0.95) !important;
+  border: 1px solid rgba(212, 98, 138, 0.15) !important;
+}
+
+/* Sakura heading glow -- subtle warm */
+@keyframes sakura-glow {
+  0%, 100% { text-shadow: 0 0 6px rgba(212, 98, 138, 0.15); }
+  50% { text-shadow: 0 0 12px rgba(212, 98, 138, 0.25), 0 0 24px rgba(212, 98, 138, 0.08); }
+}
+
+.pixel-theme-sakura h1 {
+  animation: sakura-glow 5s ease-in-out infinite !important;
+  color: #4a2a3a !important;
+}
+
+/* No CRT scanlines for sakura (clean light theme) */
+.pixel-theme-sakura body::after {
+  opacity: 0 !important;
+}
+
+/* Sakura grid -- very subtle warm */
+.pixel-theme-sakura body::before {
+  background-image:
+    linear-gradient(rgba(212, 98, 138, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212, 98, 138, 0.03) 1px, transparent 1px) !important;
+}
+
+/* Sakura toggle & panel overrides */
+.pixel-theme-sakura .pixel-toggle-btn {
+  background-color: rgba(255, 248, 245, 0.95) !important;
+  border-color: rgba(212, 98, 138, 0.2) !important;
+  color: #c4587a !important;
+  box-shadow: 0 2px 12px rgba(212, 98, 138, 0.08);
+}
+
+.pixel-theme-sakura .pixel-panel {
+  background-color: rgba(255, 250, 248, 0.98) !important;
+  border-color: rgba(212, 98, 138, 0.15) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 12px rgba(212, 98, 138, 0.06) !important;
+}
+
+/* --- PHOSPHOR: stronger CRT, terminal vibe --- */
+@keyframes phosphor-flicker {
+  0%, 100% { opacity: 1; }
+  92% { opacity: 1; }
+  93% { opacity: 0.85; }
+  94% { opacity: 1; }
+}
+
+.pixel-theme-phosphor body {
+  animation: phosphor-flicker 8s ease-in-out infinite;
+}
+
+.pixel-theme-phosphor h1 {
+  color: #33ff33 !important;
+}
+
+.pixel-theme-phosphor .text-white {
+  color: #c0f0c0 !important;
+}
+
+.pixel-theme-phosphor .text-zinc-100 {
+  color: #a0e0a0 !important;
+}
+
+/* Phosphor tags */
+.pixel-theme-phosphor .bg-zinc-800,
+.pixel-theme-phosphor [class*="rounded-full"][class*="bg-zinc"] {
+  background-color: rgba(51, 255, 51, 0.04) !important;
+  border: 1px solid rgba(51, 255, 51, 0.15) !important;
+  color: #33ff33 !important;
+}
+
+/* --- Responsive adjustments --- */
 @media (max-width: 768px) {
   .pixel-mode h1,
   .pixel-mode .text-6xl,
   .pixel-mode .text-5xl,
   .pixel-mode .text-7xl {
-    font-size: 1rem !important;
+    font-size: 0.95rem !important;
   }
 
   .pixel-mode h2,
   .pixel-mode .text-4xl,
   .pixel-mode .text-3xl {
-    font-size: 0.85rem !important;
+    font-size: 0.8rem !important;
   }
 
   .pixel-mode h3,
   .pixel-mode .text-2xl {
-    font-size: 0.7rem !important;
+    font-size: 0.65rem !important;
   }
 
   .pixel-mode p,
   .pixel-mode .text-lg {
-    font-size: 0.55rem !important;
+    font-size: 0.5rem !important;
   }
 }
