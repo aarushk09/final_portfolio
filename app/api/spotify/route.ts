@@ -5,6 +5,10 @@ const SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
 const SPOTIFY_NOW_PLAYING_URL = "https://api.spotify.com/v1/me/player/currently-playing"
 const KV_REFRESH_TOKEN_KEY = "spotify_refresh_token"
 
+// Cache access token so we only call Spotify's refresh endpoint when needed (expired or after 401/400)
+let accessTokenCache: { token: string; expiresAt: number } | null = null
+const CACHE_BUFFER_MS = 60 * 1000 // refresh 1 min before expiry
+
 async function getStoredRefreshToken(): Promise<string | null> {
   try {
     const stored = await kv.get<string>(KV_REFRESH_TOKEN_KEY)
@@ -22,20 +26,17 @@ async function setStoredRefreshToken(token: string): Promise<void> {
   }
 }
 
-async function getAccessToken() {
+async function getAccessToken(forceRefresh = false): Promise<{ access_token: string }> {
+  if (!forceRefresh && accessTokenCache && Date.now() < accessTokenCache.expiresAt) {
+    return { access_token: accessTokenCache.token }
+  }
+
   const client_id = process.env.SPOTIFY_CLIENT_ID?.trim()
   const client_secret = process.env.SPOTIFY_CLIENT_SECRET?.trim()
   const env_refresh = process.env.SPOTIFY_REFRESH_TOKEN?.trim()
 
   let refresh_token: string | null = await getStoredRefreshToken()
   if (!refresh_token) refresh_token = env_refresh
-
-  console.log("Environment variables check:", {
-    refresh_token_exists: !!refresh_token,
-    client_id_exists: !!client_id,
-    client_secret_exists: !!client_secret,
-    refresh_token_preview: refresh_token ? `${refresh_token.substring(0, 10)}...` : "undefined",
-  })
 
   if (!refresh_token) {
     throw new Error("SPOTIFY_REFRESH_TOKEN is not set (and no token in KV)")
@@ -46,8 +47,6 @@ async function getAccessToken() {
   if (!client_secret) {
     throw new Error("SPOTIFY_CLIENT_SECRET is not set")
   }
-
-  console.log("Requesting fresh Spotify access token...")
 
   const response = await fetch(SPOTIFY_TOKEN_URL, {
     method: "POST",
@@ -61,8 +60,6 @@ async function getAccessToken() {
     }),
   })
 
-  console.log(`Token refresh response status: ${response.status}`)
-
   if (!response.ok) {
     const errorText = await response.text()
     console.error("Failed to refresh Spotify token:", response.status, errorText)
@@ -74,43 +71,40 @@ async function getAccessToken() {
     await setStoredRefreshToken(data.refresh_token)
   }
 
-  console.log("Token refresh response:", {
-    has_access_token: !!data.access_token,
-    token_type: data.token_type,
-    expires_in: data.expires_in,
-    scope: data.scope,
-    access_token_preview: data.access_token ? `${data.access_token.substring(0, 20)}...` : "undefined",
-  })
-
   if (!data.access_token) {
-    console.error("No access token in response:", data)
     throw new Error("No access token received from Spotify")
   }
 
-  return data
+  const expiresIn = (data.expires_in ?? 3600) * 1000
+  accessTokenCache = {
+    token: data.access_token,
+    expiresAt: Date.now() + expiresIn - CACHE_BUFFER_MS,
+  }
+
+  return { access_token: data.access_token }
 }
 
-async function getNowPlaying() {
-  const { access_token } = await getAccessToken()
-
-  console.log("Making request to Spotify API with fresh token...")
-
-  const response = await fetch(SPOTIFY_NOW_PLAYING_URL, {
+async function fetchNowPlaying(accessToken: string): Promise<Response> {
+  return fetch(SPOTIFY_NOW_PLAYING_URL, {
     headers: {
-      Authorization: `Bearer ${access_token}`,
-      'Cache-Control': 'no-cache',
+      Authorization: `Bearer ${accessToken}`,
+      "Cache-Control": "no-cache",
     },
-    // Force no caching
-    cache: 'no-store',
+    cache: "no-store",
   })
+}
 
-  console.log(`Spotify currently-playing API response status: ${response.status}`)
-  console.log(`Response headers:`, {
-    'content-type': response.headers.get('content-type'),
-    'cache-control': response.headers.get('cache-control'),
-    'x-ratelimit-remaining': response.headers.get('x-ratelimit-remaining'),
-  })
-  
+async function getNowPlaying(): Promise<Response> {
+  const { access_token } = await getAccessToken()
+  let response = await fetchNowPlaying(access_token)
+
+  // Only refresh (and persist new refresh token) when we get an auth error
+  if (response.status === 401 || response.status === 400) {
+    accessTokenCache = null
+    const { access_token: newToken } = await getAccessToken(true)
+    response = await fetchNowPlaying(newToken)
+  }
+
   return response
 }
 
