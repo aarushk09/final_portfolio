@@ -65,7 +65,19 @@ If you see **“Invalid client”** or **403** in the terminal:
 
 ---
 
-## 4. Production (e.g. Vercel)
+## 4. Keep the refresh token permanently (no more daily re-auth)
+
+Spotify sometimes returns a **new** refresh token when we refresh. The app now stores that in **Vercel KV** so you don’t have to re-run the setup.
+
+1. In Vercel: **Storage** → **Create Database** → **KV**.
+2. Create a KV store, then **Connect** it to your project (this adds `KV_REST_API_URL`, `KV_REST_API_TOKEN`, etc.).
+3. Redeploy. After the first successful refresh, the app will save the latest refresh token to KV and reuse it. You won’t need to regenerate the token.
+
+If you don’t add KV, the app still works but will only use the token from env; if Spotify rotates it, you may need to get a new token from the setup page again.
+
+---
+
+## 5. Production (e.g. Vercel)
 
 1. In Vercel: Project → **Settings** → **Environment Variables**.
 2. Add (for Production, and optionally Preview/Development):
@@ -85,5 +97,6 @@ If you see **“Invalid client”** or **403** in the terminal:
 ## Summary
 
 - **One app:** Use the same Client ID and Client Secret in Dashboard, `.env.local`, and Vercel.
-- **One refresh token:** Get it once from `/spotify-setup` with that app, then put it in `.env.local` and in Vercel.
+- **One refresh token:** Get it once from `/spotify-setup`, put it in `.env.local` and in Vercel. The app will **persist** new refresh tokens in Vercel KV when Spotify returns them, so you don’t have to regenerate it.
+- **Vercel KV:** Connect a KV store to your project so the app can save the latest refresh token and avoid “token expired” after a day.
 - **User Management:** The Spotify account you authorize must be added in the Dashboard for the widget to work (avoids 403).

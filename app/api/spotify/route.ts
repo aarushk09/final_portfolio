@@ -1,25 +1,47 @@
 import { NextResponse } from "next/server"
+import { kv } from "@vercel/kv"
 
 const SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
 const SPOTIFY_NOW_PLAYING_URL = "https://api.spotify.com/v1/me/player/currently-playing"
+const KV_REFRESH_TOKEN_KEY = "spotify_refresh_token"
+
+async function getStoredRefreshToken(): Promise<string | null> {
+  try {
+    const stored = await kv.get<string>(KV_REFRESH_TOKEN_KEY)
+    return stored?.trim() ?? null
+  } catch {
+    return null
+  }
+}
+
+async function setStoredRefreshToken(token: string): Promise<void> {
+  try {
+    await kv.set(KV_REFRESH_TOKEN_KEY, token.trim())
+  } catch (e) {
+    console.warn("Could not persist Spotify refresh token to KV:", e)
+  }
+}
 
 async function getAccessToken() {
-  const refresh_token = process.env.SPOTIFY_REFRESH_TOKEN?.trim()
   const client_id = process.env.SPOTIFY_CLIENT_ID?.trim()
   const client_secret = process.env.SPOTIFY_CLIENT_SECRET?.trim()
+  const env_refresh = process.env.SPOTIFY_REFRESH_TOKEN?.trim()
+
+  let refresh_token: string | null = await getStoredRefreshToken()
+  if (!refresh_token) refresh_token = env_refresh
 
   console.log("Environment variables check:", {
     refresh_token_exists: !!refresh_token,
     client_id_exists: !!client_id,
     client_secret_exists: !!client_secret,
-    refresh_token_preview: refresh_token ? `${refresh_token.substring(0, 10)}...` : 'undefined'
+    refresh_token_preview: refresh_token ? `${refresh_token.substring(0, 10)}...` : "undefined",
   })
 
   if (!refresh_token) {
-    throw new Error("SPOTIFY_REFRESH_TOKEN is not set")
+    throw new Error("SPOTIFY_REFRESH_TOKEN is not set (and no token in KV)")
   }
   if (!client_id) {
-    throw new Error("SPOTIFY_CLIENT_ID is not set") 
+    throw new Error("SPOTIFY_CLIENT_ID is not set")
   }
   if (!client_secret) {
     throw new Error("SPOTIFY_CLIENT_SECRET is not set")
@@ -35,7 +57,7 @@ async function getAccessToken() {
     },
     body: new URLSearchParams({
       grant_type: "refresh_token",
-      refresh_token: refresh_token,
+      refresh_token,
     }),
   })
 
@@ -48,12 +70,16 @@ async function getAccessToken() {
   }
 
   const data = await response.json()
+  if (data.refresh_token) {
+    await setStoredRefreshToken(data.refresh_token)
+  }
+
   console.log("Token refresh response:", {
     has_access_token: !!data.access_token,
     token_type: data.token_type,
     expires_in: data.expires_in,
     scope: data.scope,
-    access_token_preview: data.access_token ? `${data.access_token.substring(0, 20)}...` : 'undefined'
+    access_token_preview: data.access_token ? `${data.access_token.substring(0, 20)}...` : "undefined",
   })
 
   if (!data.access_token) {
