@@ -216,7 +216,7 @@ export default function Portfolio() {
                     <p className="font-crimson-text text-xl md:text-2xl text-zinc-300 leading-relaxed max-w-3xl">
                       I'm passionate about artificial intelligence and machine learning, with a keen interest in
                       Arduino projects. In my free time, I enjoy playing the piano and tennis. My career goal is to work
-                      in the AI/L field while pursuing entrepreneurial ventures.
+                      in the AI/MML field while pursuing entrepreneurial ventures.
                     </p>
                   </div>
 
