@@ -27,7 +27,8 @@ export async function POST(request: Request) {
   // Trigger your deployment script here (self-hosted server)
   // Adjust the path and commands to match your environment
   exec(
-    "cd ~/portfolio && git pull && pnpm install --prod --no-frozen-lockfile && pnpm run build && pm2 restart portfolio",
+    "cd /home/aarushkute/portfolio && git pull && pnpm install --prod --no-frozen-lockfile && pnpm run build && pm2 restart portfolio",
+  
     (err, stdout, stderr) => {
       if (err) {
         console.error("Deploy script error:", err)
