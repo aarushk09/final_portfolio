@@ -1,38 +1,44 @@
 import { NextResponse } from "next/server"
+import crypto from "crypto"
+import { exec } from "child_process"
+
+// Ensure this route runs in the Node.js runtime (not Edge)
+export const runtime = "nodejs"
 
 export async function POST(request: Request) {
-  // Optional: verify GitHub webhook secret
+  const rawBody = await request.text()
+
+  // Optional: verify GitHub webhook secret (highly recommended)
   const signature = request.headers.get("x-hub-signature-256") ?? request.headers.get("x-github-signature")
   const secret = process.env.GITHUB_WEBHOOK_SECRET
+
   if (secret && signature) {
-    // Verify HMAC-SHA256: compare crypto.createHmac("sha256", secret).update(body).digest("hex") with signature
-    const encoder = new TextEncoder()
-    const body = await request.text()
-    const key = await crypto.subtle.importKey(
-      "raw",
-      encoder.encode(secret),
-      { name: "HMAC", hash: "SHA-256" },
-      false,
-      ["sign"]
-    )
-    const sig = await crypto.subtle.sign(
-      "HMAC",
-      key,
-      encoder.encode(body)
-    )
-    const expected = "sha256=" + Array.from(new Uint8Array(sig))
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("")
-    if (signature !== expected) {
+    const hmac = crypto.createHmac("sha256", secret)
+    const digest = "sha256=" + hmac.update(rawBody).digest("hex")
+
+    if (signature !== digest) {
+      console.warn("Invalid GitHub webhook signature")
       return NextResponse.json({ message: "Invalid signature" }, { status: 401 })
     }
   }
 
   console.log("Webhook received, deploy triggered!")
-  // Trigger your deployment script here if running on a VPS:
-  // const { exec } = require("child_process");
-  // exec("cd /path/to/portfolio && git pull && pnpm install && pnpm run build && pm2 restart portfolio");
 
+  // Trigger your deployment script here (self-hosted server)
+  // Adjust the path and commands to match your environment
+  exec(
+    "cd ~/portfolio && git pull && pnpm install --prod --no-frozen-lockfile && pnpm run build && pm2 restart portfolio",
+    (err, stdout, stderr) => {
+      if (err) {
+        console.error("Deploy script error:", err)
+        if (stderr) console.error(stderr)
+      } else {
+        console.log("Deploy script output:\n", stdout)
+      }
+    },
+  )
+
+  // Respond immediately; deploy runs in the background
   return NextResponse.json({ message: "Deploy triggered" })
 }
 
