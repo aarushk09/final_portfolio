@@ -11,74 +11,113 @@ export default function Portfolio() {
   const [showSpotify, setShowSpotify] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [selectedExperience, setSelectedExperience] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
 
   // Detailed experience data
   const experienceDetails = {
-    evion: {
-      title: "Evion",
-      role: "Co-Founder",
-      period: "Jan 2025 - Present",
-      description: "Building ML infrastructure for agriculture. Working with 500+ farms, trained models on 30,000+ images achieving 95% accuracy.",
-      detailedDescription: "Leading the development of cutting-edge machine learning infrastructure specifically designed for agricultural applications. Our platform serves over 500 farms across multiple regions, providing real-time crop monitoring, disease detection, and yield prediction capabilities.",
+    ung: {
+      title: "University of North Georgia",
+      role: "Undergraduate Research Lead",
+      period: "Oct 2023 - Present",
+      description: "Led a cross-functional team of 4 students on complex research initiatives, co-authored 4 papers in Environmental Science/Hydrology with applied Machine Learning.",
+      detailedDescription: "Leading undergraduate research at the University of North Georgia, overseeing a team of 4 student researchers across multiple concurrent studies. Work spans Environmental Science and Hydrology domains with a focus on applying modern Machine Learning techniques to real-world water systems data.",
       achievements: [
-        "Trained computer vision models on 30,000+ agricultural images achieving 95% accuracy",
-        "Deployed ML infrastructure serving 500+ farms with real-time monitoring",
-        "Developed automated disease detection system reducing crop loss by 30%",
-        "Built scalable data pipeline processing 10TB+ of agricultural data monthly",
-        "Implemented edge computing solutions for real-time field analysis"
+        "Led a cross-functional team of 4 students, overseeing project timelines and data integrity across multiple concurrent studies",
+        "Co-authored 4 research papers in collaboration with faculty on Environmental Science/Hydrology with applied Machine Learning",
+        "Selected for Oral Presentation at SCWRC '25, delivering findings to a professional audience of 50+ attendees",
+        "Presented three technical posters across AGU and SCWRC conferences",
+        "Managed the end-to-end research lifecycle from hypothesis testing to publication and peer-review preparation"
       ],
-      technologies: ["Python", "TensorFlow", "Computer Vision", "AWS", "Edge Computing", "IoT Sensors"],
-      impact: "Helping farmers increase crop yields by 25% on average while reducing pesticide usage by 40%"
+      technologies: ["Python", "QSWAT", "Machine Learning", "Data Analysis", "GIS", "Hydrology Modeling"],
+      impact: "Contributed 4 peer-reviewed research papers advancing Environmental Science and Hydrology applications of Machine Learning"
     },
     dailysat: {
       title: "DailySAT",
-      role: "Founder & CEO",
-      period: "Aug 2024 - Present",
-      description: "Transforming SAT prep through gamified learning experiences and interactive challenges.",
-      detailedDescription: "Created an innovative educational platform that revolutionizes SAT preparation through gamification, personalized learning paths, and interactive challenges. The platform adapts to individual learning styles and provides comprehensive analytics for both students and educators.",
+      role: "Founder",
+      period: "Aug 2023 - Present",
+      description: "Scaled a digital education platform to 88,000+ unique visitors and 1,000+ registered users. Engineered a viral growth strategy resulting in 6M+ organic Instagram views.",
+      detailedDescription: "Founded and scaled a free SAT preparatory platform serving a global student audience. Directed a cross-functional team to build, grow, and maintain the platform — from product development and content strategy to platform reliability and viral marketing.",
       achievements: [
-        "Developed adaptive learning algorithm that personalizes study paths for each student",
-        "Built gamification system with achievements, leaderboards, and progress tracking",
-        "Created comprehensive question bank with 10,000+ practice problems",
-        "Implemented AI-powered performance analytics and recommendations",
-        "Launched mobile app with offline study capabilities"
+        "Scaled platform to 88,000+ unique visitors and 1,000+ registered users providing free SAT prep globally",
+        "Directed a cross-functional team of 5 core members and 8 interns across product, content, and engineering",
+        "Engineered a viral growth strategy resulting in 6M+ organic views on Instagram",
+        "Architected and maintained the end-to-end technical infrastructure ensuring high availability during peak traffic",
+        "Spearheaded product roadmap and feature prioritization, translating user feedback into actionable engineering tasks"
       ],
-      technologies: ["React", "Node.js", "PostgreSQL", "AI/ML", "Mobile Development", "Analytics"],
-      impact: "Students using DailySAT show an average score improvement of 150+ points"
-    },
-    studybubbly: {
-      title: "Study Bubbly",
-      role: "CTO",
-      period: "Sep 2024 - Present",
-      description: "Platform for AP study materials. Helped 250,000+ students worldwide with curated notes and educational content.",
-      detailedDescription: "Serving as Chief Technology Officer for a comprehensive educational platform that provides curated study materials, interactive content, and collaborative learning tools for AP students worldwide. The platform has become a go-to resource for high school students preparing for Advanced Placement exams.",
-      achievements: [
-        "Scaled platform to serve 250,000+ students across 50+ countries",
-        "Developed content management system handling 1000+ study guides",
-        "Built collaborative learning features enabling student study groups",
-        "Implemented advanced search and recommendation algorithms",
-        "Created mobile-responsive platform with 99.9% uptime"
-      ],
-      technologies: ["Next.js", "TypeScript", "MongoDB", "Redis", "CDN", "Mobile Optimization"],
-      impact: "Over 250,000 students have accessed our materials with 85% reporting improved AP exam scores"
+      technologies: ["Next.js", "TypeScript", "PostgreSQL", "Digital Marketing", "Analytics", "Full-Stack Development"],
+      impact: "88,000+ unique visitors and 1,000+ registered users accessing free SAT preparatory resources globally"
     },
     webgenius: {
       title: "WebGenius 501(c)(3)",
       role: "Founder",
-      period: "Jul 2024 - Present",
-      description: "Non-profit creating free websites for small organizations. 100+ projects completed, clients raised $300k+ in funding.",
-      detailedDescription: "Founded and lead a registered 501(c)(3) non-profit organization dedicated to providing free, professional website development services to small organizations, non-profits, and community groups that lack the resources for professional web development.",
+      period: "Sep 2023 - Present",
+      description: "Established a registered 501(c)(3) non-profit. Directed 5 chapters and 20+ volunteers, completing 100+ web projects and securing $300K+ in corporate donations.",
+      detailedDescription: "Founded and scaled a registered 501(c)(3) non-profit dedicated to providing professional web infrastructure for high school organizations globally. Oversaw all aspects of the organization from federal incorporation and board governance to project delivery and volunteer recruitment.",
       achievements: [
-        "Completed 100+ website projects for non-profits and small businesses",
-        "Helped client organizations raise over $300,000 in funding",
-        "Built team of 25+ volunteer developers and designers",
-        "Established partnerships with major hosting providers for free services",
-        "Created standardized development processes and quality assurance protocols"
+        "Established and scaled a registered 501(c)(3) non-profit providing professional web infrastructure for high school organizations globally",
+        "Directed a national network of 5 chapters and 20+ volunteers, delivering 100+ web development projects",
+        "Secured $300K+ in corporate donations and service credits, providing high-tier hosting and development tools at zero cost to students",
+        "Certified and awarded 500+ community service hours to student developers",
+        "Managed the full organizational lifecycle from federal non-profit incorporation to technical project management"
       ],
-      technologies: ["WordPress", "PHP", "MySQL", "JavaScript", "CSS", "Hosting Management"],
-      impact: "Our client organizations have collectively raised over $300,000 in funding after receiving new websites"
+      technologies: ["Web Development", "Non-profit Management", "Strategic Partnerships", "Operations", "Volunteer Coordination"],
+      impact: "100+ web projects delivered globally; $300K+ in secured resources benefiting student organizations at zero cost"
+    },
+    edpear: {
+      title: "EdPear",
+      role: "Founder & Maintainer",
+      period: "Nov 2025 - Present",
+      description: "Engineered open-source EdTech libraries achieving 4,000+ NPM installs. Secured integration interest from YC-backed startups and launched to Top 100 on Product Hunt.",
+      detailedDescription: "Building and maintaining a suite of open-source EdTech libraries designed for seamless integration into enterprise-grade educational platforms. Managing the full developer ecosystem from architecture and documentation to community engagement and go-to-market strategy.",
+      achievements: [
+        "Engineered open-source EdTech libraries achieving 4,000+ NPM installs",
+        "Secured integration interest from multiple YC-backed startups, providing technical consultations on codebase compatibility",
+        "Launched to a Top 100 ranking on Product Hunt, successfully managing the initial release and community feedback loop",
+        "Architected modular, high-performance components designed for enterprise-grade educational platforms",
+        "Cultivated an open-source community managing documentation, pull requests, and feature requests for long-term stability"
+      ],
+      technologies: ["TypeScript", "NPM", "Open-Source Development", "API Design", "Developer Experience", "Go-to-Market Strategy"],
+      impact: "4,000+ NPM installs with adoption interest from YC-backed startups and a Top 100 Product Hunt launch"
+    },
+    stealth: {
+      title: "Stealth Startup (AgTech)",
+      role: "Chief Technology Officer",
+      period: "May 2024 - Dec 2025",
+      description: "Engineered ML infrastructure for an AgTech startup with 90%+ accuracy NDVI models. Scaled to 500+ Maryland farms with models trained on 30,000+ satellite and drone images.",
+      detailedDescription: "Served as CTO for a stealth AgTech startup, owning the full technical architecture and ML pipeline. Developed synthetic NDVI models and deep learning systems to enable data-driven field health monitoring at scale across hundreds of farms.",
+      achievements: [
+        "Engineered synthetic NDVI (Normalized Difference Vegetation Index) models achieving 90%+ accuracy across diverse crop types",
+        "Scaled operations to 500+ Maryland farms, implementing data-driven tools for optimized field health monitoring",
+        "Optimized deep learning models trained on 30,000+ satellite and drone images, reaching 95% peak validation accuracy",
+        "Selected for a premier SF Hackerhouse residency, collaborating with elite Silicon Valley engineers and founders",
+        "Architected the end-to-end data pipeline from raw image ingestion to delivering actionable vegetation indices"
+      ],
+      technologies: ["PyTorch", "Computer Vision", "Python", "Satellite Imagery", "NDVI Modeling", "Deep Learning"],
+      impact: "ML infrastructure serving 500+ farms with 95% peak validation accuracy on a 30,000+ image proprietary dataset"
+    },
+    excellence: {
+      title: "Excellence",
+      role: "Machine Learning Intern",
+      period: "May 2025 - Jul 2025",
+      description: "Architected a Text-to-Video pipeline fine-tuning LLMs for math education. Increased system efficiency by 30% and reduced operational overhead by 25%.",
+      detailedDescription: "Interned as a Machine Learning engineer focused on building a Text-to-Video pipeline that automates the generation of complex mathematical explanations using fine-tuned Large Language Models, bridging symbolic logic and visual animation.",
+      achievements: [
+        "Architected a Text-to-Video pipeline by fine-tuning LLMs to automate generation of complex mathematical explanations",
+        "Increased system efficiency and output accuracy by 30% through rigorous hyperparameter tuning and custom prompt-engineering frameworks",
+        "Reduced operational overhead by 25% by optimizing model inference and streamlining the video generation workflow",
+        "Developed automated evaluation metrics to benchmark model performance against strict pedagogical standards",
+        "Collaborated on deploying ML models to production, focusing on minimizing latency for real-time video synthesis"
+      ],
+      technologies: ["LLMs", "Generative AI", "Model Fine-Tuning", "NLP", "Python", "Video Synthesis"],
+      impact: "30% efficiency gain and 25% reduction in operational overhead across the Text-to-Video ML pipeline"
     }
   }
+
+  // Trigger entrance animations after first paint
+  useEffect(() => {
+    const t = setTimeout(() => setMounted(true), 60)
+    return () => clearTimeout(t)
+  }, [])
 
   // Start preloading photos immediately
   const { photos, preloadedUrls, startPreloading } = usePhotoPreloader()
@@ -204,244 +243,281 @@ export default function Portfolio() {
       default:
         return (
           <>
-            {/* Hero Section */}
-            <section className="px-8 py-20 max-w-7xl mx-auto">
-              <div className="grid lg:grid-cols-3 gap-16 items-start">
-                {/* Left Column - Main Content */}
-                <div className="lg:col-span-2 space-y-16">
-                  <div className="pt-5">
-                    <h1 className="font-inter font-light text-6xl md:text-8xl lg:text-9xl text-white mb-8 leading-[0.9] tracking-tight">
-                      hey, i'm aarush
-                    </h1>
-                    <p className="font-crimson-text text-xl md:text-2xl text-zinc-300 leading-relaxed max-w-3xl">
-                      I am  about artificial's and machine learning, with a keen interest in
-                      Arduino's projects. In my free time, I enjoy playing the piano and tennis. My career goal is to work
-                      in the AI/MML field while pursuing entrepreneurial ventures.
-                    </p>
-                  </div>
+            {/* Keyframe definitions */}
+            <style>{`
+              @keyframes slideUpFade {
+                from { opacity: 0; transform: translateY(32px); }
+                to   { opacity: 1; transform: translateY(0); }
+              }
+              @keyframes slideInRight {
+                from { opacity: 0; transform: translateX(28px); }
+                to   { opacity: 1; transform: translateX(0); }
+              }
+              @keyframes floatPhoto {
+                0%, 100% { transform: translateY(0px) rotate(-0.5deg); }
+                50%       { transform: translateY(-10px) rotate(0.5deg); }
+              }
+              @keyframes shimmer {
+                0%   { background-position: -200% center; }
+                100% { background-position: 200% center; }
+              }
+              @keyframes lineGrow {
+                from { transform: scaleX(0); }
+                to   { transform: scaleX(1); }
+              }
+              .anim-word {
+                display: inline-block;
+                opacity: 0;
+                transform: translateY(32px);
+                transition: opacity 0.65s cubic-bezier(0.22,1,0.36,1), transform 0.65s cubic-bezier(0.22,1,0.36,1);
+              }
+              .anim-word.show {
+                opacity: 1;
+                transform: translateY(0);
+              }
+              .anim-fade {
+                opacity: 0;
+                transform: translateY(18px);
+                transition: opacity 0.7s ease, transform 0.7s ease;
+              }
+              .anim-fade.show {
+                opacity: 1;
+                transform: translateY(0);
+              }
+              .anim-right {
+                opacity: 0;
+                transform: translateX(28px);
+                transition: opacity 0.75s cubic-bezier(0.22,1,0.36,1), transform 0.75s cubic-bezier(0.22,1,0.36,1);
+              }
+              .anim-right.show {
+                opacity: 1;
+                transform: translateX(0);
+              }
+              .stat-line {
+                transform-origin: left;
+                animation: lineGrow 0.6s cubic-bezier(0.22,1,0.36,1) forwards;
+                animation-play-state: paused;
+              }
+              .stat-line.show {
+                animation-play-state: running;
+              }
+              .name-shimmer {
+                background: linear-gradient(90deg, #fff 0%, #fff 40%, #a1a1aa 50%, #fff 60%, #fff 100%);
+                background-size: 200% auto;
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+              }
+              .name-shimmer.show {
+                animation: shimmer 2.4s linear 0.6s 1 forwards;
+              }
+            `}</style>
 
-                  {/* Experience */}
-                  <div>
-                    <h2 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-12">Experience</h2>
-                    <div className="space-y-12">
-                      <div 
-                        className="group cursor-pointer p-4 -m-4 rounded-xl hover:bg-white/5 transition-all duration-300"
-                        onClick={() => setSelectedExperience('evion')}
-                      >
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3">
-                          <h3 className="font-inter text-2xl text-white group-hover:text-zinc-200 transition-colors">
-                            Evion
-                          </h3>
-                          <span className="font-inter text-sm text-zinc-500 uppercase tracking-wide">
-                            Co-Founder • Jan 2025 - Present
-                          </span>
-                        </div>
-                        <p className="font-crimson-text text-lg text-zinc-400 leading-relaxed">
-                          Building ML infrastructure for agriculture. Working with 500+ farms, trained models on 30,000+
-                          images achieving 95% accuracy.
-                        </p>
-                        <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <span className="font-inter text-sm text-zinc-500">Click to learn more →</span>
-                        </div>
-                      </div>
-
-                      <div 
-                        className="group cursor-pointer p-4 -m-4 rounded-xl hover:bg-white/5 transition-all duration-300"
-                        onClick={() => setSelectedExperience('dailysat')}
-                      >
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3">
-                          <h3 className="font-inter text-2xl text-white group-hover:text-zinc-200 transition-colors">
-                            DailySAT
-                          </h3>
-                          <span className="font-inter text-sm text-zinc-500 uppercase tracking-wide">
-                            Founder & CEO • Aug 2024 - Present
-                          </span>
-                        </div>
-                        <p className="font-crimson-text text-lg text-zinc-400 leading-relaxed">
-                          Transforming SAT prep through gamified learning experiences and interactive challenges.
-                        </p>
-                        <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <span className="font-inter text-sm text-zinc-500">Click to learn more →</span>
-                        </div>
-                      </div>
-
-                      <div 
-                        className="group cursor-pointer p-4 -m-4 rounded-xl hover:bg-white/5 transition-all duration-300"
-                        onClick={() => setSelectedExperience('studybubbly')}
-                      >
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3">
-                          <h3 className="font-inter text-2xl text-white group-hover:text-zinc-200 transition-colors">
-                            Study Bubbly
-                          </h3>
-                          <span className="font-inter text-sm text-zinc-500 uppercase tracking-wide">
-                            CTO • Sep 2024 - Present
-                          </span>
-                        </div>
-                        <p className="font-crimson-text text-lg text-zinc-400 leading-relaxed">
-                          Platform for AP study materials. Helped 250,000+ students worldwide with curated notes and
-                          educational content.
-                        </p>
-                        <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <span className="font-inter text-sm text-zinc-500">Click to learn more →</span>
-                        </div>
-                      </div>
-
-                      <div 
-                        className="group cursor-pointer p-4 -m-4 rounded-xl hover:bg-white/5 transition-all duration-300"
-                        onClick={() => setSelectedExperience('webgenius')}
-                      >
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3">
-                          <h3 className="font-inter text-2xl text-white group-hover:text-zinc-200 transition-colors">
-                            WebGenius 501(c)(3)
-                          </h3>
-                          <span className="font-inter text-sm text-zinc-500 uppercase tracking-wide">
-                            Founder • Jul 2024 - Present
-                          </span>
-                        </div>
-                        <p className="font-crimson-text text-lg text-zinc-400 leading-relaxed">
-                          Non-profit creating free websites for small organizations. 100+ projects completed, clients
-                          raised $300k+ in funding.
-                        </p>
-                        <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <span className="font-inter text-sm text-zinc-500">Click to learn more →</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+            {/* Hero */}
+            <section className="px-8 pt-28 pb-14 max-w-7xl mx-auto">
+              <div className="flex items-start justify-between gap-8 mb-14">
+                {/* Title block */}
+                <div className="flex-1">
+                  <p
+                    className={`font-inter text-xs uppercase tracking-[0.35em] text-zinc-600 mb-8 anim-fade${mounted ? ' show' : ''}`}
+                    style={{ transitionDelay: '0ms' }}
+                  >
+                    based in cumming, georgia
+                  </p>
+                  <h1 className="font-inter leading-[0.88] tracking-tight overflow-hidden">
+                    <span
+                      className={`anim-word font-extralight text-[clamp(2rem,5vw,4rem)] text-zinc-400${mounted ? ' show' : ''}`}
+                      style={{ transitionDelay: '80ms' }}
+                    >
+                      hey, i&rsquo;m
+                    </span>
+                    <br />
+                    <span
+                      className={`anim-word name-shimmer font-light text-[clamp(4rem,11vw,9.5rem)] text-white${mounted ? ' show' : ''}`}
+                      style={{ transitionDelay: '180ms' }}
+                    >
+                      aarush
+                    </span>
+                  </h1>
                 </div>
 
-                {/* Right Column - Photo & Info */}
-                <div className="lg:col-span-1 space-y-12">
-                  <div>
+                {/* Photo */}
+                <div
+                  className={`hidden lg:block flex-shrink-0 mt-6 anim-right${mounted ? ' show' : ''}`}
+                  style={{ transitionDelay: '350ms' }}
+                >
+                  <div
+                    className="relative"
+                    style={mounted ? { animation: 'floatPhoto 7s ease-in-out 1.2s infinite' } : {}}
+                  >
                     <img
                       src="/images/aarush-photo.png"
-                      alt="Aarush in Switzerland with mountains in background"
-                      className="w-[300px] h-[300px] object-cover object-bottom rounded-2xl"
+                      alt="Aarush"
+                      className="w-52 h-52 object-cover object-top rounded-2xl"
                     />
-                  </div>
-
-                  <div className="space-y-8">
-                    {/* Education Section */}
-                    <div>
-                      <h3 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-4">Education</h3>
-                      <div className="space-y-4">
-                        <div>
-                          <h4 className="font-inter text-lg text-white mb-1">
-                            Georgia State University Perimeter College
-                          </h4>
-                          
-                          <span className="font-inter text-xs text-zinc-500 uppercase tracking-wide">
-                            May 2024 - July 2024
-                          </span>
-                        </div>
-                        <div>
-                          <h4 className="font-inter text-lg text-white mb-1">South Forsyth High School</h4>
-                          <span className="font-inter text-xs text-zinc-500 uppercase tracking-wide">2022</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-4">Skills</h3>
-                      <p className="font-crimson-text text-lg text-zinc-300 leading-relaxed">
-                        Machine Learning
-                        <br />
-                        Arduino
-                        <br />
-                        Mechanical Engineering
-                      </p>
-                    </div>
-
-                    <div>
-                      <h3 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-4">
-                        Programming
-                      </h3>
-                      <p className="font-crimson-text text-lg text-zinc-300 leading-relaxed">
-                        C#
-                        <br />
-                        Python
-                        <br />
-                        SQL
-                        <br />
-                        JavaScript
-                      </p>
-                    </div>
-
-                    <div>
-                      <h3 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-4">Contact</h3>
-                      <div className="space-y-3">
-                        <a
-                          href="mailto:aarushkute8@gmail.com"
-                          className="block font-crimson-text text-lg text-zinc-300 hover:text-white transition-colors"
-                        >
-                          aarushkute8@gmail.com
-                        </a>
-                        <a
-                          href="https://www.linkedin.com/in/aarushkute-1639a525b"
-                          className="block font-crimson-text text-lg text-zinc-300 hover:text-white transition-colors"
-                        >
-                          LinkedIn
-                        </a>
-                        <a
-                          href="https://portfolio-v2f-two.vercel.app/"
-                          className="block font-crimson-text text-lg text-zinc-300 hover:text-white transition-colors"
-                        >
-                          Personal Website
-                        </a>
-                      </div>
-                    </div>
+                    <div className="absolute inset-0 rounded-2xl ring-1 ring-white/10 pointer-events-none" />
+                    <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
                   </div>
                 </div>
               </div>
+
+              {/* Divider + bio */}
+              <div
+                className={`border-t border-zinc-800 pt-10 anim-fade${mounted ? ' show' : ''}`}
+                style={{ transitionDelay: '420ms' }}
+              >
+                <p className="font-crimson-text text-xl md:text-[1.45rem] text-zinc-300 leading-[1.75] max-w-2xl">
+                  I&rsquo;m a machine learning engineer and serial builder from Cumming, Georgia.
+                  I train deep learning models, found companies, and ship open-source tools &mdash;
+                  sometimes all at once. Over the past few years I&rsquo;ve built AgTech infrastructure
+                  reaching 500+ farms, scaled an EdTech platform to 88K+ users, co-authored research
+                  presented at national conferences, and put 4,000+ NPM installs worth of open-source
+                  into the world. I care about work that actually ships and problems worth solving.
+                </p>
+              </div>
             </section>
 
-            {/* Recognition Section */}
-            <section className="px-8 py-20 max-w-7xl mx-auto border-t border-zinc-800/50">
-              <h2 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-12">Recognition</h2>
-              <div className="grid md:grid-cols-2 gap-12">
-                <div>
-                  <h3 className="font-inter text-xl text-white mb-4">Honors & Awards</h3>
-                  <p className="font-crimson-text text-lg text-zinc-400 leading-relaxed">
-                    GASTC 8x Consecutive County & State Winner (~1k+ kids every year)
-                    <br />
-                    ProjectEuler+ HackerRank 32/205113
-                    <br />
-                    3x Regional Winners, 3x State Qualifier, State Design Winner, and World Championship Qualifier
-                    <br />
-                    Piano RCM Level 8 Certification, Level 8 Theory Certification
-                    <br />
-                    Presidential Volunteering Award Gold (300 hours)
-                  </p>
-                </div>
-                <div>
-                  <h3 className="font-inter text-xl text-white mb-4">Publications</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <a 
-                        href="https://online.fliphtml5.com/pgovq/jxpw/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-crimson-text text-lg text-zinc-300 hover:text-white transition-colors"
-                      >
-                        Neural Network-Enhanced Inventory Forecasting for DDMRP
-                      </a>
-                      <p className="font-inter text-xs text-zinc-500 mt-1">
-                        Submitted to NeurIPS
-                      </p>
+            {/* Stats bar */}
+            <section className="px-8 py-12 max-w-7xl mx-auto border-t border-zinc-800/50">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                {([
+                  { n: "88K+", label: "platform visitors", delay: 520 },
+                  { n: "6M+",  label: "organic views",     delay: 600 },
+                  { n: "500+", label: "farms served",      delay: 680 },
+                  { n: "4K+",  label: "npm installs",      delay: 760 },
+                ] as { n: string; label: string; delay: number }[]).map(({ n, label, delay }) => (
+                  <div
+                    key={n}
+                    className={`anim-fade${mounted ? ' show' : ''}`}
+                    style={{ transitionDelay: `${delay}ms` }}
+                  >
+                    <p className="font-inter text-[2.6rem] font-extralight text-white mb-1 tracking-tight tabular-nums">{n}</p>
+                    <div
+                      className={`h-px bg-zinc-700 mb-2 stat-line${mounted ? ' show' : ''}`}
+                      style={{ animationDelay: `${delay + 100}ms` }}
+                    />
+                    <p className="font-inter text-xs uppercase tracking-[0.25em] text-zinc-600">{label}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* Selected work — editorial numbered list */}
+            <section className="px-8 py-16 max-w-7xl mx-auto border-t border-zinc-800/50">
+              <p
+                className={`font-inter text-xs uppercase tracking-[0.35em] text-zinc-600 mb-12 anim-fade${mounted ? ' show' : ''}`}
+                style={{ transitionDelay: '860ms' }}
+              >
+                Selected Work
+              </p>
+              <div>
+                {([
+                  { key: "ung",        name: "UNG Research",    role: "Research Lead",       year: "2023 –",  tag: "Academia"    },
+                  { key: "dailysat",   name: "DailySAT",         role: "Founder",              year: "2023 –",  tag: "EdTech"      },
+                  { key: "webgenius",  name: "WebGenius",        role: "Founder",              year: "2023 –",  tag: "Non-Profit"  },
+                  { key: "edpear",     name: "EdPear",           role: "Founder & Maintainer", year: "2025 –",  tag: "Open Source" },
+                  { key: "stealth",    name: "Stealth AgTech",   role: "CTO",                  year: "2024–25", tag: "AgTech / ML" },
+                  { key: "excellence", name: "Excellence",       role: "ML Intern",            year: "2025",    tag: "LLM / GenAI" },
+                ] as { key: string; name: string; role: string; year: string; tag: string }[]).map(({ key, name, role, year, tag }, i) => (
+                  <div
+                    key={key}
+                    className={`group flex items-center justify-between py-5 border-t border-zinc-800/50 cursor-pointer hover:pl-3 transition-all duration-300 anim-fade${mounted ? ' show' : ''}`}
+                    style={{ transitionDelay: `${920 + i * 70}ms` }}
+                    onClick={() => setSelectedExperience(key)}
+                  >
+                    <div className="flex items-baseline gap-6 md:gap-10 min-w-0">
+                      <span className="font-inter text-xs text-zinc-700 tabular-nums flex-shrink-0">{String(i + 1).padStart(2, "0")}</span>
+                      <span className="font-inter text-xl md:text-2xl text-white group-hover:text-zinc-300 transition-colors duration-200 truncate">{name}</span>
+                      <span className="hidden md:block font-inter text-sm text-zinc-600 flex-shrink-0">{role}</span>
                     </div>
-                    <div>
-                      <p className="font-crimson-text text-lg text-zinc-400 leading-relaxed">
-                        Watershed Modeling Using QSWAT to Find the Water Quality at Two Fish Hatcheries in Chattahoochee River
-                      </p>
-                      <p className="font-inter text-xs text-zinc-500 mt-1">
-                        Oral presentation at SCWRC (Southern Climate & Water Research Conference)
-                      </p>
-                      <p className="font-crimson-text text-sm text-zinc-500 leading-relaxed mt-2">
-                        Completed detailed literature review confirming temporal increase of ammonia causes sudden water temperature drops. 
-                        Developed QSWAT hydrologic model showing manyfold increase in Nitrogen, Ammonia, and Nitrate-Nitrite loadings 
-                        from subwatersheds draining to Lake Lanier. Completed SWATCUP analysis for model calibration and validation 
-                        with in-situ daily data.
-                      </p>
+                    <div className="flex items-center gap-4 md:gap-6 flex-shrink-0 ml-4">
+                      <span className="hidden sm:block font-inter text-xs uppercase tracking-[0.2em] text-zinc-600 border border-zinc-800 px-2.5 py-1 rounded-full group-hover:border-zinc-600 group-hover:text-zinc-400 transition-colors duration-200">{tag}</span>
+                      <span className="font-inter text-xs text-zinc-700">{year}</span>
+                      <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-zinc-400 text-sm">→</span>
+                    </div>
+                  </div>
+                ))}
+                <div className="border-t border-zinc-800/50" />
+              </div>
+            </section>
+
+            {/* Recognition + About */}
+            <section className="px-8 py-16 max-w-7xl mx-auto border-t border-zinc-800/50">
+              <div className="grid md:grid-cols-5 gap-16">
+                {/* Recognitions – wider col */}
+                <div className="md:col-span-3">
+                  <p className="font-inter text-xs uppercase tracking-[0.35em] text-zinc-600 mb-10">Recognition</p>
+                  <ul className="space-y-4">
+                    {([
+                      "GASTC 8× Consecutive County & State Winner",
+                      "ProjectEuler+ HackerRank — #32 of 205,113",
+                      "3× Regional, 3× State Qualifier, State Design Winner, World Championship Qualifier",
+                      "Piano RCM Level 8 + Level 8 Theory Certification",
+                      "Presidential Volunteering Award — Gold (300 hrs)",
+                    ] as string[]).map((item) => (
+                      <li key={item} className="flex items-start gap-4">
+                        <span className="text-zinc-700 mt-1 select-none flex-shrink-0">—</span>
+                        <span className="font-crimson-text text-lg text-zinc-400 leading-snug">{item}</span>
+                      </li>
+                    ))}
+                    <li className="flex items-start gap-4">
+                      <span className="text-zinc-700 mt-1 select-none flex-shrink-0">—</span>
+                      <span className="font-crimson-text text-lg text-zinc-400 leading-snug">
+                        <a
+                          href="https://online.fliphtml5.com/pgovq/jxpw/"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline underline-offset-4 decoration-zinc-700 hover:text-zinc-200 transition-colors"
+                        >
+                          Neural Network-Enhanced Inventory Forecasting for DDMRP
+                        </a>{" "}
+                        — Submitted to NeurIPS
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-4">
+                      <span className="text-zinc-700 mt-1 select-none flex-shrink-0">—</span>
+                      <span className="font-crimson-text text-lg text-zinc-400 leading-snug">
+                        Oral Presenter @ SCWRC '25 — Watershed Modeling via QSWAT
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Stack + Education + Contact */}
+                <div className="md:col-span-2 space-y-10">
+                  <div>
+                    <p className="font-inter text-xs uppercase tracking-[0.35em] text-zinc-600 mb-5">Stack</p>
+                    <div className="flex flex-wrap gap-2">
+                      {["Python", "PyTorch", "TypeScript", "Go", "SQL", "Next.js", "Computer Vision", "LLMs"].map((s) => (
+                        <span key={s} className="font-inter text-xs text-zinc-500 border border-zinc-800 px-3 py-1.5 rounded-full">{s}</span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="font-inter text-xs uppercase tracking-[0.35em] text-zinc-600 mb-5">Education</p>
+                    <div className="space-y-3">
+                      <div>
+                        <p className="font-inter text-sm text-zinc-300">University of North Georgia</p>
+                        <p className="font-inter text-xs text-zinc-700">Undergraduate — Present</p>
+                      </div>
+                      <div>
+                        <p className="font-inter text-sm text-zinc-300">Georgia State University Perimeter</p>
+                        <p className="font-inter text-xs text-zinc-700">May – Jul 2024</p>
+                      </div>
+                      <div>
+                        <p className="font-inter text-sm text-zinc-300">South Forsyth High School</p>
+                        <p className="font-inter text-xs text-zinc-700">2022</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="font-inter text-xs uppercase tracking-[0.35em] text-zinc-600 mb-5">Contact</p>
+                    <div className="space-y-2">
+                      <a href="mailto:aarushkute8@gmail.com" className="block font-inter text-sm text-zinc-500 hover:text-white transition-colors">aarushkute8@gmail.com</a>
+                      <a href="https://www.linkedin.com/in/aarush-kute-1639a525b/" className="block font-inter text-sm text-zinc-500 hover:text-white transition-colors">LinkedIn ↗</a>
+                      <a href="https://portfolio-v2f-two.vercel.app/" className="block font-inter text-sm text-zinc-500 hover:text-white transition-colors">Personal Website ↗</a>
                     </div>
                   </div>
                 </div>
@@ -449,9 +525,9 @@ export default function Portfolio() {
             </section>
 
             {/* Footer */}
-            <footer className="px-8 py-12 max-w-7xl mx-auto border-t border-zinc-800/50">
-              <p className="font-inter text-sm text-zinc-600">
-                © 2024 Aarush. Building cool stuff from Cumming, Georgia.
+            <footer className="px-8 py-10 max-w-7xl mx-auto border-t border-zinc-800/50">
+              <p className="font-inter text-xs text-zinc-700 tracking-wide">
+                © 2026 Aarush Kute — Cumming, Georgia
               </p>
             </footer>
           </>
@@ -459,7 +535,7 @@ export default function Portfolio() {
     }
   }
 
-  // Experience Modal Component
+  // Experience Drawer Component
   const ExperienceModal = () => {
     if (!selectedExperience) return null
 
@@ -467,82 +543,70 @@ export default function Portfolio() {
     if (!experience) return null
 
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
+      <div className="fixed inset-0 z-50 flex justify-end">
         {/* Backdrop */}
-        <div 
-          className="absolute inset-0 bg-black/50 backdrop-blur-md cursor-pointer animate-in fade-in duration-300"
+        <div
+          className="absolute inset-0 bg-black/40 backdrop-blur-sm cursor-pointer"
           onClick={() => setSelectedExperience(null)}
         />
-        
-        {/* Modal Content */}
-        <div className="relative bg-zinc-900/95 backdrop-blur-xl border border-zinc-700/50 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
-          {/* Header */}
-          <div className="sticky top-0 bg-zinc-900/95 backdrop-blur-xl border-b border-zinc-700/50 p-6 flex items-center justify-between">
+
+        {/* Slide-in drawer */}
+        <div className="relative bg-zinc-950 border-l border-zinc-800 w-full max-w-xl h-full overflow-y-auto flex flex-col animate-in slide-in-from-right duration-300">
+          {/* Top bar */}
+          <div className="flex items-center justify-between px-8 py-6 border-b border-zinc-800/60 sticky top-0 bg-zinc-950 z-10">
             <div>
-              <h2 className="font-inter text-3xl text-white mb-2">{experience.title}</h2>
-              <div className="flex items-center gap-4">
-                <span className="font-inter text-lg text-zinc-300">{experience.role}</span>
-                <span className="font-inter text-sm text-zinc-500 uppercase tracking-wide">
-                  {experience.period}
-                </span>
-              </div>
+              <p className="font-inter text-xs uppercase tracking-[0.3em] text-zinc-600 mb-1">{experience.role} · {experience.period}</p>
+              <h2 className="font-inter text-2xl font-light text-white">{experience.title}</h2>
             </div>
             <button
               onClick={() => setSelectedExperience(null)}
-              className="p-2 rounded-full bg-zinc-800/50 hover:bg-zinc-700/50 transition-colors text-zinc-400 hover:text-white"
+              className="text-zinc-600 hover:text-white transition-colors ml-4 flex-shrink-0"
+              aria-label="Close"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
 
-          {/* Content */}
-          <div className="p-6 space-y-8">
+          {/* Body */}
+          <div className="px-8 py-10 space-y-12 flex-1">
             {/* Overview */}
             <div>
-              <h3 className="font-inter text-xl text-white mb-4">Overview</h3>
-              <p className="font-crimson-text text-lg text-zinc-300 leading-relaxed">
+              <p className="font-crimson-text text-xl text-zinc-300 leading-relaxed">
                 {experience.detailedDescription}
               </p>
             </div>
 
-            {/* Key Achievements */}
+            {/* Achievements */}
             <div>
-              <h3 className="font-inter text-xl text-white mb-4">Key Achievements</h3>
-              <ul className="space-y-3">
-                {experience.achievements.map((achievement, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-zinc-400 rounded-full mt-3 flex-shrink-0" />
-                    <p className="font-crimson-text text-lg text-zinc-300 leading-relaxed">
-                      {achievement}
-                    </p>
+              <p className="font-inter text-xs uppercase tracking-[0.3em] text-zinc-600 mb-6">Highlights</p>
+              <ul className="space-y-5">
+                {experience.achievements.map((item, i) => (
+                  <li key={i} className="flex items-start gap-4">
+                    <span className="font-inter text-xs text-zinc-700 tabular-nums pt-1 flex-shrink-0">{String(i + 1).padStart(2, "0")}</span>
+                    <p className="font-crimson-text text-lg text-zinc-400 leading-snug">{item}</p>
                   </li>
                 ))}
               </ul>
             </div>
 
-            {/* Technologies */}
+            {/* Stack */}
             <div>
-              <h3 className="font-inter text-xl text-white mb-4">Technologies & Skills</h3>
-              <div className="flex gap-2 flex-wrap">
-                {experience.technologies.map((tech, index) => (
-                  <span 
-                    key={index}
-                    className="px-3 py-2 text-sm bg-zinc-800/50 text-zinc-300 rounded-full border border-zinc-700/50"
-                  >
+              <p className="font-inter text-xs uppercase tracking-[0.3em] text-zinc-600 mb-5">Stack & Skills</p>
+              <div className="flex flex-wrap gap-2">
+                {experience.technologies.map((tech, i) => (
+                  <span key={i} className="font-inter text-xs text-zinc-500 border border-zinc-800 px-3 py-1.5 rounded-full">
                     {tech}
                   </span>
                 ))}
               </div>
             </div>
 
-            {/* Impact */}
-            <div className="bg-zinc-800/30 rounded-xl p-6 border border-zinc-700/30">
-              <h3 className="font-inter text-xl text-white mb-3">Impact</h3>
-              <p className="font-crimson-text text-lg text-zinc-300 leading-relaxed">
-                {experience.impact}
-              </p>
+            {/* Impact callout */}
+            <div className="border-l-2 border-zinc-700 pl-5">
+              <p className="font-inter text-xs uppercase tracking-[0.3em] text-zinc-600 mb-3">Impact</p>
+              <p className="font-crimson-text text-lg text-zinc-300 leading-relaxed">{experience.impact}</p>
             </div>
           </div>
         </div>
