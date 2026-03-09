@@ -398,8 +398,8 @@ export function PhotoGlobe({ onOpenLocation, panelOpen }: PhotoGlobeProps) {
           </div>
         )}
 
-        {/* Zoom controls */}
-        <div className="absolute top-3 right-3 flex flex-col gap-1 z-10 pointer-events-auto">
+        {/* Zoom controls — offset 100px further right of the globe edge */}
+        <div className="absolute top-3 flex flex-col gap-1 z-10 pointer-events-auto" style={{ right: "-100px" }}>
           <button
             onClick={handleZoomIn}
             className="w-7 h-7 bg-zinc-900/80 border border-zinc-700 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white hover:border-zinc-500 transition-colors text-base leading-none"
@@ -424,13 +424,6 @@ export function PhotoGlobe({ onOpenLocation, panelOpen }: PhotoGlobeProps) {
           </div>
         )}
 
-        {locations.length > 0 && (
-          <div className="absolute bottom-3 left-3 pointer-events-none">
-            <span className="font-inter text-[10px] text-white/20 tabular-nums">
-              {locations.length} location{locations.length !== 1 ? "s" : ""}
-            </span>
-          </div>
-        )}
       </div>
     </div>
   )

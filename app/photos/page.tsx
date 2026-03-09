@@ -50,12 +50,6 @@ export default function PhotosPage() {
           <p className="font-inter text-xs uppercase tracking-[0.35em] text-zinc-600">
             Photos
           </p>
-          <a
-            href="/upload-photos"
-            className="font-inter text-xs text-zinc-600 border border-zinc-800 px-4 py-2 rounded-lg hover:border-zinc-600 hover:text-zinc-400 transition-colors"
-          >
-            Manage
-          </a>
         </div>
 
         {/* Globe — takes all remaining vertical space */}
@@ -68,9 +62,17 @@ export default function PhotosPage() {
           <p className="font-inter text-[11px] text-zinc-700">
             Drag to rotate · scroll to zoom · click a marker to view photos
           </p>
-          <p className="font-inter text-[11px] text-zinc-700">
-            © 2026 Aarush Kute
-          </p>
+          <div className="flex items-center gap-4">
+            <a
+              href="/upload-photos"
+              className="font-inter text-xs text-zinc-600 border border-zinc-800 px-4 py-1.5 rounded-lg hover:border-zinc-600 hover:text-zinc-400 transition-colors"
+            >
+              Manage
+            </a>
+            <p className="font-inter text-[11px] text-zinc-700">
+              © 2026 Aarush Kute
+            </p>
+          </div>
         </div>
       </div>
 
