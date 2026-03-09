@@ -185,16 +185,23 @@ export function PhotoGlobe({ onOpenLocation, panelOpen }: PhotoGlobeProps) {
     }
   }, [])
 
-  // Responsive sizing
+  // Responsive sizing — use both width and height to fill the flex container
   useEffect(() => {
     const update = () => {
       if (containerRef.current) {
-        setGlobeSize(Math.min(containerRef.current.clientWidth, 600))
+        const w = containerRef.current.clientWidth
+        const h = containerRef.current.clientHeight
+        setGlobeSize(Math.min(w, h, 600))
       }
     }
     update()
+    const ro = new ResizeObserver(update)
+    if (containerRef.current) ro.observe(containerRef.current)
     window.addEventListener("resize", update)
-    return () => window.removeEventListener("resize", update)
+    return () => {
+      ro.disconnect()
+      window.removeEventListener("resize", update)
+    }
   }, [])
 
   // Cobe instance
@@ -299,7 +306,7 @@ export function PhotoGlobe({ onOpenLocation, panelOpen }: PhotoGlobeProps) {
   )
 
   return (
-    <div ref={containerRef} className="relative w-full flex items-center justify-center select-none">
+    <div ref={containerRef} className="relative w-full h-full flex items-center justify-center select-none">
       {/* Fixed-layout wrapper — clips zoomed globe to a circle */}
       <div
         ref={zoomWrapperRef}
@@ -339,7 +346,7 @@ export function PhotoGlobe({ onOpenLocation, panelOpen }: PhotoGlobeProps) {
               .map((m) => {
                 const opacity = Math.max(0.3, Math.min(1, (m.depth - 0.05) / 0.6))
                 const showFan = m.depth > FAN_THRESHOLD && m.loc.photos.length > 0
-                const dotSize = 8 + Math.min(m.loc.photos.length, 8) * 0.5
+                const dotSize = (8 + Math.min(m.loc.photos.length, 8) * 0.5) * zoomScale
                 // Adjust marker position to match the CSS-scaled globe
                 const vx = globeSize / 2 + (m.x - globeSize / 2) * zoomScale
                 const vy = globeSize / 2 + (m.y - globeSize / 2) * zoomScale
@@ -372,7 +379,7 @@ export function PhotoGlobe({ onOpenLocation, panelOpen }: PhotoGlobeProps) {
                     {/* Pin dot */}
                     <button
                       className="relative flex items-center justify-center focus:outline-none pointer-events-auto"
-                      style={{ width: 28, height: 28 }}
+                      style={{ width: Math.max(28, dotSize + 10), height: Math.max(28, dotSize + 10) }}
                       onClick={() => handleMarkerClick(m.loc)}
                     >
                       <span
@@ -392,7 +399,7 @@ export function PhotoGlobe({ onOpenLocation, panelOpen }: PhotoGlobeProps) {
         )}
 
         {/* Zoom controls */}
-        <div className="absolute bottom-3 right-3 flex flex-col gap-1 z-10 pointer-events-auto">
+        <div className="absolute top-3 right-3 flex flex-col gap-1 z-10 pointer-events-auto">
           <button
             onClick={handleZoomIn}
             className="w-7 h-7 bg-zinc-900/80 border border-zinc-700 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white hover:border-zinc-500 transition-colors text-base leading-none"

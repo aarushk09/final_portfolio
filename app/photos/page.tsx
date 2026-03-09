@@ -20,7 +20,7 @@ export default function PhotosPage() {
   }, [])
 
   return (
-    <main className="min-h-screen relative">
+    <main className="h-screen overflow-hidden flex flex-col relative">
       {/* Background */}
       <div className="fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950" />
@@ -43,9 +43,10 @@ export default function PhotosPage() {
         showSpotifyInSidebar={true}
       />
 
-      {/* Globe Section */}
-      <section className="px-8 pt-20 pb-8 max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
+      {/* Main content — fills viewport, no scroll */}
+      <div className="flex flex-col flex-1 min-h-0 px-8 pt-8 pb-4">
+        {/* Header row */}
+        <div className="flex items-center justify-between mb-4 flex-shrink-0">
           <p className="font-inter text-xs uppercase tracking-[0.35em] text-zinc-600">
             Photos
           </p>
@@ -57,28 +58,27 @@ export default function PhotosPage() {
           </a>
         </div>
 
-        <div className="flex justify-center">
+        {/* Globe — takes all remaining vertical space */}
+        <div className="flex-1 min-h-0 flex items-center justify-center">
           <PhotoGlobe onOpenLocation={setSelectedLocation} panelOpen={!!selectedLocation} />
         </div>
 
-        <p className="text-center font-inter text-[11px] text-zinc-700 mt-6">
-          Drag to rotate. Click a marker to view photos.
-        </p>
-      </section>
+        {/* Footer row */}
+        <div className="flex items-center justify-between flex-shrink-0 border-t border-zinc-800/50 pt-3 mt-3">
+          <p className="font-inter text-[11px] text-zinc-700">
+            Drag to rotate · scroll to zoom · click a marker to view photos
+          </p>
+          <p className="font-inter text-[11px] text-zinc-700">
+            © 2026 Aarush Kute
+          </p>
+        </div>
+      </div>
 
-      {/* Footer */}
-      <footer className="px-8 py-10 max-w-7xl mx-auto border-t border-zinc-800/50">
-        <p className="font-inter text-xs text-zinc-700 tracking-wide">
-          © 2026 Aarush Kute, Cumming, Georgia
-        </p>
-      </footer>
-
-      {/* Photo Panel (opens when clicking a globe marker) */}
+      {/* Photo Panel */}
       <PhotoPanel
         location={selectedLocation}
         onClose={() => setSelectedLocation(null)}
       />
-
     </main>
   )
 }
