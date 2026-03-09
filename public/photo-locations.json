@@ -1,0 +1,75 @@
+[
+  {
+    "id": "9a89e0ea-7f28-4ab5-a733-2005b755119b",
+    "name": "San Francisco",
+    "type": "city",
+    "lat": 37.7749,
+    "lng": -122.4194,
+    "photos": [
+      {
+        "id": "e6674ead-dab9-4d03-a8a8-34abb1a2464c",
+        "url": "/photos/img_1755315550730_IMG_8205.webp"
+      },
+      {
+        "id": "28801bbb-7e68-45ba-86d7-e925e8127518",
+        "url": "/photos/img_1755315548876_IMG_8213.webp"
+      },
+      {
+        "id": "3d4548a4-439a-451b-b47b-b3f5e2741e79",
+        "url": "/photos/img_1755315540170_IMG_8239.webp"
+      },
+      {
+        "id": "4ce74a34-82f4-45c7-8d16-5f7f22d24fad",
+        "url": "/photos/img_1755315536688_IMG_8263.webp"
+      },
+      {
+        "id": "9dce39b5-daa7-465e-943d-b7ff8577cbb5",
+        "url": "/photos/img_1755315534444_IMG_8269.webp"
+      },
+      {
+        "id": "1b17d352-dd96-446c-8f62-dca7e4828367",
+        "url": "/photos/img_1755315530063_IMG_8302.webp"
+      },
+      {
+        "id": "02cb7b92-bfee-48c4-9a1a-57026e4ed129",
+        "url": "/photos/img_1755315527692_IMG_8306.webp"
+      },
+      {
+        "id": "457c2ac4-6b6f-4432-b431-f800fba3f4b1",
+        "url": "/photos/img_1755315525035_IMG_8309.webp"
+      },
+      {
+        "id": "6c2e19ea-7882-40cc-a91b-1b89345183f3",
+        "url": "/photos/img_1755315522773_IMG_8312.webp"
+      },
+      {
+        "id": "17807c19-bf79-436b-9a84-d492d471ec74",
+        "url": "/photos/img_1755315518957_IMG_8357.webp"
+      },
+      {
+        "id": "6863de66-bc0f-40ba-a261-74f75f2f9412",
+        "url": "/photos/img_1755315516443_IMG_8361.webp"
+      },
+      {
+        "id": "41392e8b-4629-4c3a-bc2c-155e01619fdc",
+        "url": "/photos/img_1755315512338_IMG_8381.webp"
+      },
+      {
+        "id": "547c613a-94cc-4260-adf2-ebf8a8f3609d",
+        "url": "/photos/img_1755315508232_IMG_8402.webp"
+      },
+      {
+        "id": "38a59039-5c41-4362-9abb-6eb4d48c7516",
+        "url": "/photos/img_1755315501914_IMG_8443.webp"
+      },
+      {
+        "id": "590b54d5-6dce-4afc-82df-3fe9b03e8887",
+        "url": "/photos/img_1755315493159_IMG_8473.webp"
+      },
+      {
+        "id": "bff9ca9c-ee25-4b9f-ab20-a545a30e5bb2",
+        "url": "/photos/img_1755315499341_IMG_8449.jpeg"
+      }
+    ]
+  }
+]

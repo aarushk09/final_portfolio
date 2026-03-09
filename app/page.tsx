@@ -1,10 +1,49 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { SpotifyWidget } from "@/components/spotify-widget"
 import { Navigation } from "@/components/navigation"
-import { PhotoGallery } from "@/components/photo-gallery"
-import { usePhotoPreloader } from "@/hooks/usePhotoPreloader"
+import { GitHubActivity } from "@/components/github-activity"
+import { PhotoGlobe, PhotoPanel } from "@/components/photo-globe"
+import type { PhotoLocation } from "@/lib/photo-locations"
+
+const STATS_CONFIG = [
+  { target: 88,  suffix: "K+", label: "platform visitors" },
+  { target: 6,   suffix: "M+", label: "organic views"     },
+  { target: 500, suffix: "+",  label: "farms served"      },
+  { target: 4,   suffix: "K+", label: "npm installs"      },
+]
+
+const PROJECTS = [
+  {
+    title: "Evion ML Platform",
+    description:
+      "End-to-end agricultural ML infrastructure serving 500+ Maryland farms. NDVI deep learning models trained on 30,000+ satellite and drone images reach 95% peak validation accuracy.",
+    tags: ["PyTorch", "Computer Vision", "Python", "Satellite Imagery"],
+    href: "#",
+  },
+  {
+    title: "DailySAT",
+    description:
+      "Free SAT prep platform scaled to 88,000+ unique visitors and 1,000+ registered users. A viral content strategy drove 6M+ organic Instagram views with zero ad spend.",
+    tags: ["Next.js", "TypeScript", "PostgreSQL"],
+    href: "https://dailysat.vercel.app",
+  },
+  {
+    title: "EdPear",
+    description:
+      "Open-source EdTech component library built for enterprise educational platforms. 4,000+ NPM installs, a Top 100 Product Hunt launch, and active integration interest from YC-backed startups.",
+    tags: ["TypeScript", "NPM", "Open Source"],
+    href: "https://www.npmjs.com/org/edpear",
+  },
+  {
+    title: "WebGenius 501(c)(3)",
+    description:
+      "Registered non-profit providing professional web infrastructure to high school organizations globally. 5 chapters, 20+ volunteers, 100+ projects delivered, and $300K+ in secured corporate donations.",
+    tags: ["Non-Profit", "Web Development", "Operations"],
+    href: "#",
+  },
+]
 
 export default function Portfolio() {
   const [activeTab, setActiveTab] = useState("portfolio")
@@ -12,6 +51,14 @@ export default function Portfolio() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [selectedExperience, setSelectedExperience] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
+
+  // Globe photo state
+  const [selectedLocation, setSelectedLocation] = useState<PhotoLocation | null>(null)
+
+  // Count-up animation state
+  const statsRef = useRef<HTMLDivElement>(null)
+  const [statsStarted, setStatsStarted] = useState(false)
+  const [statValues, setStatValues] = useState([0, 0, 0, 0])
 
   // Detailed experience data
   const experienceDetails = {
@@ -36,7 +83,7 @@ export default function Portfolio() {
       role: "Founder",
       period: "Aug 2023 - Present",
       description: "Scaled a digital education platform to 88,000+ unique visitors and 1,000+ registered users. Engineered a viral growth strategy resulting in 6M+ organic Instagram views.",
-      detailedDescription: "Founded and scaled a free SAT preparatory platform serving a global student audience. Directed a cross-functional team to build, grow, and maintain the platform — from product development and content strategy to platform reliability and viral marketing.",
+      detailedDescription: "Founded and scaled a free SAT preparatory platform serving a global student audience. Directed a cross-functional team to build, grow, and maintain the platform from product development and content strategy to platform reliability and viral marketing.",
       achievements: [
         "Scaled platform to 88,000+ unique visitors and 1,000+ registered users providing free SAT prep globally",
         "Directed a cross-functional team of 5 core members and 8 interns across product, content, and engineering",
@@ -119,16 +166,37 @@ export default function Portfolio() {
     return () => clearTimeout(t)
   }, [])
 
-  // Start preloading photos immediately
-  const { photos, preloadedUrls, startPreloading } = usePhotoPreloader()
+  // Intersection observer for stats count-up
+  useEffect(() => {
+    const el = statsRef.current
+    if (!el) return
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setStatsStarted(true) },
+      { threshold: 0.4 }
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
+
+  // Run count-up animation when stats section comes into view
+  useEffect(() => {
+    if (!statsStarted) return
+    const duration = 1600
+    const start = performance.now()
+    const animate = (now: number) => {
+      const t = Math.min((now - start) / duration, 1)
+      const ease = 1 - Math.pow(1 - t, 3)
+      setStatValues(STATS_CONFIG.map(s => Math.floor(s.target * ease)))
+      if (t < 1) requestAnimationFrame(animate)
+      else setStatValues(STATS_CONFIG.map(s => s.target))
+    }
+    requestAnimationFrame(animate)
+  }, [statsStarted])
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollY = window.scrollY
-      // Hide Spotify widget when scrolled down more than 100px
-      setShowSpotify(scrollY < 100)
+      setShowSpotify(window.scrollY < 100)
     }
-
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
@@ -140,85 +208,47 @@ export default function Portfolio() {
         setSelectedExperience(null)
       }
     }
-
     if (selectedExperience) {
       window.addEventListener("keydown", handleKeyDown)
-      // Prevent body scroll when modal is open
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = 'unset'
     }
-
     return () => {
       window.removeEventListener("keydown", handleKeyDown)
       document.body.style.overflow = 'unset'
     }
   }, [selectedExperience])
 
-  // Start preloading photos as soon as the page loads
-  useEffect(() => {
-    // Small delay to let the page load first, then start preloading
-    const timer = setTimeout(() => {
-      startPreloading()
-    }, 1000) // 1 second delay
-
-    return () => clearTimeout(timer)
-  }, [startPreloading])
-
   const renderContent = () => {
     switch (activeTab) {
       case "projects":
         return (
           <section className="px-8 py-20 max-w-7xl mx-auto">
-            <h2 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500 mb-12">Projects</h2>
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="group p-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300">
-                <h3 className="font-inter text-2xl text-white mb-4">Evion ML Platform</h3>
-                <p className="font-crimson-text text-lg text-zinc-400 leading-relaxed mb-6">
-                  Agricultural ML infrastructure serving 500+ farms with 95% accuracy models trained on 30,000+ images.
-                </p>
-                <div className="flex gap-2 flex-wrap">
-                  <span className="px-3 py-1 text-xs bg-zinc-800 text-zinc-300 rounded-full">Python</span>
-                  <span className="px-3 py-1 text-xs bg-zinc-800 text-zinc-300 rounded-full">TensorFlow</span>
-                  <span className="px-3 py-1 text-xs bg-zinc-800 text-zinc-300 rounded-full">Computer Vision</span>
-                </div>
-              </div>
-
-              <div className="group p-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300">
-                <h3 className="font-inter text-2xl text-white mb-4">DailySAT Platform</h3>
-                <p className="font-crimson-text text-lg text-zinc-400 leading-relaxed mb-6">
-                  Gamified SAT preparation platform with interactive challenges and personalized learning paths.
-                </p>
-                <div className="flex gap-2 flex-wrap">
-                  <span className="px-3 py-1 text-xs bg-zinc-800 text-zinc-300 rounded-full">React</span>
-                  <span className="px-3 py-1 text-xs bg-zinc-800 text-zinc-300 rounded-full">Node.js</span>
-                  <span className="px-3 py-1 text-xs bg-zinc-800 text-zinc-300 rounded-full">PostgreSQL</span>
-                </div>
-              </div>
-
-              <div className="group p-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300">
-                <h3 className="font-inter text-2xl text-white mb-4">Study Bubbly</h3>
-                <p className="font-crimson-text text-lg text-zinc-400 leading-relaxed mb-6">
-                  Educational platform helping 250,000+ students worldwide with AP study materials and resources.
-                </p>
-                <div className="flex gap-2 flex-wrap">
-                  <span className="px-3 py-1 text-xs bg-zinc-800 text-zinc-300 rounded-full">Next.js</span>
-                  <span className="px-3 py-1 text-xs bg-zinc-800 text-zinc-300 rounded-full">TypeScript</span>
-                  <span className="px-3 py-1 text-xs bg-zinc-800 text-zinc-300 rounded-full">MongoDB</span>
-                </div>
-              </div>
-
-              <div className="group p-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300">
-                <h3 className="font-inter text-2xl text-white mb-4">WebGenius 501(c)(3)</h3>
-                <p className="font-crimson-text text-lg text-zinc-400 leading-relaxed mb-6">
-                  Non-profit creating free websites for organizations. 100+ projects completed, $300k+ funding raised.
-                </p>
-                <div className="flex gap-2 flex-wrap">
-                  <span className="px-3 py-1 text-xs bg-zinc-800 text-zinc-300 rounded-full">WordPress</span>
-                  <span className="px-3 py-1 text-xs bg-zinc-800 text-zinc-300 rounded-full">PHP</span>
-                  <span className="px-3 py-1 text-xs bg-zinc-800 text-zinc-300 rounded-full">MySQL</span>
-                </div>
-              </div>
+            <p className="font-inter text-xs uppercase tracking-[0.35em] text-zinc-600 mb-12">Projects</p>
+            <div className="grid md:grid-cols-2 gap-6">
+              {PROJECTS.map((project) => (
+                <a
+                  key={project.title}
+                  href={project.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex flex-col p-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/[0.08] hover:border-white/20 transition-all duration-300"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <h3 className="font-inter text-xl text-white group-hover:text-zinc-200 transition-colors">{project.title}</h3>
+                    <span className="text-zinc-700 group-hover:text-zinc-400 transition-colors duration-200 text-sm ml-4 flex-shrink-0">↗</span>
+                  </div>
+                  <p className="font-crimson-text text-lg text-zinc-400 leading-relaxed flex-1 mb-6">
+                    {project.description}
+                  </p>
+                  <div className="flex gap-2 flex-wrap">
+                    {project.tags.map((tag) => (
+                      <span key={tag} className="px-3 py-1 text-xs bg-zinc-800/80 text-zinc-400 rounded-full">{tag}</span>
+                    ))}
+                  </div>
+                </a>
+              ))}
             </div>
           </section>
         )
@@ -226,17 +256,21 @@ export default function Portfolio() {
       case "photos":
         return (
           <section className="px-8 py-20 max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-12">
-              <h2 className="font-inter text-sm uppercase tracking-[0.2em] text-zinc-500">Photos</h2>
-              <div className="flex items-center gap-4">
-                {/* Commented out for now - uncomment when needed
-                <StorageSetup />
-                <PhotoUpload existingPhotos={photos} />
-                {photos.length > 0 && <DeleteAllPhotos photoCount={photos.length} />}
-                */}
-              </div>
+            <div className="flex items-center justify-between mb-8">
+              <p className="font-inter text-xs uppercase tracking-[0.35em] text-zinc-600">Photos</p>
+              <a
+                href="/upload-photos"
+                className="font-inter text-xs text-zinc-600 border border-zinc-800 px-4 py-2 rounded-lg hover:border-zinc-600 hover:text-zinc-400 transition-colors"
+              >
+                Manage
+              </a>
             </div>
-            <PhotoGallery preloadedPhotos={photos} preloadedUrls={preloadedUrls} />
+            <div className="flex justify-center">
+              <PhotoGlobe onOpenLocation={setSelectedLocation} panelOpen={!!selectedLocation} />
+            </div>
+            <p className="text-center font-inter text-[11px] text-zinc-700 mt-6">
+              Drag to rotate. Click a marker to view photos.
+            </p>
           </section>
         )
 
@@ -245,14 +279,6 @@ export default function Portfolio() {
           <>
             {/* Keyframe definitions */}
             <style>{`
-              @keyframes slideUpFade {
-                from { opacity: 0; transform: translateY(32px); }
-                to   { opacity: 1; transform: translateY(0); }
-              }
-              @keyframes slideInRight {
-                from { opacity: 0; transform: translateX(28px); }
-                to   { opacity: 1; transform: translateX(0); }
-              }
               @keyframes floatPhoto {
                 0%, 100% { transform: translateY(0px) rotate(-0.5deg); }
                 50%       { transform: translateY(-10px) rotate(0.5deg); }
@@ -367,34 +393,32 @@ export default function Portfolio() {
                 style={{ transitionDelay: '420ms' }}
               >
                 <p className="font-crimson-text text-xl md:text-[1.45rem] text-zinc-300 leading-[1.75] max-w-2xl">
-                  I&rsquo;m a machine learning engineer and serial builder from Cumming, Georgia.
-                  I train deep learning models, found companies, and ship open-source tools &mdash;
-                  sometimes all at once. Over the past few years I&rsquo;ve built AgTech infrastructure
-                  reaching 500+ farms, scaled an EdTech platform to 88K+ users, co-authored research
-                  presented at national conferences, and put 4,000+ NPM installs worth of open-source
-                  into the world. I care about work that actually ships and problems worth solving.
+                  Machine learning engineer, researcher, and founder from Cumming, Georgia.
+                  I build things that work at scale. Over the past few years I shipped AgTech
+                  infrastructure now running across 500+ farms, grew a free SAT prep platform
+                  to 88K visitors, co-authored papers presented at national conferences, and
+                  released open-source libraries pulling 4K+ NPM installs. I split my time
+                  between deep learning research, building companies, and writing tools other
+                  engineers actually use.
                 </p>
               </div>
             </section>
 
             {/* Stats bar */}
-            <section className="px-8 py-12 max-w-7xl mx-auto border-t border-zinc-800/50">
+            <section ref={statsRef} className="px-8 py-12 max-w-7xl mx-auto border-t border-zinc-800/50">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                {([
-                  { n: "88K+", label: "platform visitors", delay: 520 },
-                  { n: "6M+",  label: "organic views",     delay: 600 },
-                  { n: "500+", label: "farms served",      delay: 680 },
-                  { n: "4K+",  label: "npm installs",      delay: 760 },
-                ] as { n: string; label: string; delay: number }[]).map(({ n, label, delay }) => (
+                {STATS_CONFIG.map(({ suffix, label }, i) => (
                   <div
-                    key={n}
+                    key={label}
                     className={`anim-fade${mounted ? ' show' : ''}`}
-                    style={{ transitionDelay: `${delay}ms` }}
+                    style={{ transitionDelay: `${520 + i * 80}ms` }}
                   >
-                    <p className="font-inter text-[2.6rem] font-extralight text-white mb-1 tracking-tight tabular-nums">{n}</p>
+                    <p className="font-inter text-[2.6rem] font-extralight text-white mb-1 tracking-tight tabular-nums">
+                      {statValues[i]}{suffix}
+                    </p>
                     <div
                       className={`h-px bg-zinc-700 mb-2 stat-line${mounted ? ' show' : ''}`}
-                      style={{ animationDelay: `${delay + 100}ms` }}
+                      style={{ animationDelay: `${620 + i * 80}ms` }}
                     />
                     <p className="font-inter text-xs uppercase tracking-[0.25em] text-zinc-600">{label}</p>
                   </div>
@@ -402,7 +426,10 @@ export default function Portfolio() {
               </div>
             </section>
 
-            {/* Selected work — editorial numbered list */}
+            {/* GitHub Activity */}
+            <GitHubActivity />
+
+            {/* Selected work */}
             <section className="px-8 py-16 max-w-7xl mx-auto border-t border-zinc-800/50">
               <p
                 className={`font-inter text-xs uppercase tracking-[0.35em] text-zinc-600 mb-12 anim-fade${mounted ? ' show' : ''}`}
@@ -412,12 +439,12 @@ export default function Portfolio() {
               </p>
               <div>
                 {([
-                  { key: "ung",        name: "UNG Research",    role: "Research Lead",       year: "2023 –",  tag: "Academia"    },
-                  { key: "dailysat",   name: "DailySAT",         role: "Founder",              year: "2023 –",  tag: "EdTech"      },
-                  { key: "webgenius",  name: "WebGenius",        role: "Founder",              year: "2023 –",  tag: "Non-Profit"  },
-                  { key: "edpear",     name: "EdPear",           role: "Founder & Maintainer", year: "2025 –",  tag: "Open Source" },
-                  { key: "stealth",    name: "Stealth AgTech",   role: "CTO",                  year: "2024–25", tag: "AgTech / ML" },
-                  { key: "excellence", name: "Excellence",       role: "ML Intern",            year: "2025",    tag: "LLM / GenAI" },
+                  { key: "ung",        name: "UNG Research",    role: "Research Lead",       year: "2023",  tag: "Academia"    },
+                  { key: "dailysat",   name: "DailySAT",        role: "Founder",              year: "2023",  tag: "EdTech"      },
+                  { key: "webgenius",  name: "WebGenius",       role: "Founder",              year: "2023",  tag: "Non-Profit"  },
+                  { key: "edpear",     name: "EdPear",          role: "Founder & Maintainer", year: "2025",  tag: "Open Source" },
+                  { key: "stealth",    name: "Stealth AgTech",  role: "CTO",                  year: "2024",  tag: "AgTech / ML" },
+                  { key: "excellence", name: "Excellence",      role: "ML Intern",            year: "2025",  tag: "LLM / GenAI" },
                 ] as { key: string; name: string; role: string; year: string; tag: string }[]).map(({ key, name, role, year, tag }, i) => (
                   <div
                     key={key}
@@ -444,24 +471,24 @@ export default function Portfolio() {
             {/* Recognition + About */}
             <section className="px-8 py-16 max-w-7xl mx-auto border-t border-zinc-800/50">
               <div className="grid md:grid-cols-5 gap-16">
-                {/* Recognitions – wider col */}
+                {/* Recognitions */}
                 <div className="md:col-span-3">
                   <p className="font-inter text-xs uppercase tracking-[0.35em] text-zinc-600 mb-10">Recognition</p>
                   <ul className="space-y-4">
                     {([
-                      "GASTC 8× Consecutive County & State Winner",
-                      "ProjectEuler+ HackerRank — #32 of 205,113",
-                      "3× Regional, 3× State Qualifier, State Design Winner, World Championship Qualifier",
-                      "Piano RCM Level 8 + Level 8 Theory Certification",
-                      "Presidential Volunteering Award — Gold (300 hrs)",
+                      "GASTC 8x Consecutive County and State Winner",
+                      "ProjectEuler+ HackerRank, #32 of 205,113",
+                      "3x Regional, 3x State Qualifier, State Design Winner, World Championship Qualifier",
+                      "Piano RCM Level 8 and Level 8 Theory Certification",
+                      "Presidential Volunteering Award, Gold (300 hrs)",
                     ] as string[]).map((item) => (
                       <li key={item} className="flex items-start gap-4">
-                        <span className="text-zinc-700 mt-1 select-none flex-shrink-0">—</span>
+                        <span className="text-zinc-700 mt-[0.35rem] select-none flex-shrink-0 text-[0.5rem]">●</span>
                         <span className="font-crimson-text text-lg text-zinc-400 leading-snug">{item}</span>
                       </li>
                     ))}
                     <li className="flex items-start gap-4">
-                      <span className="text-zinc-700 mt-1 select-none flex-shrink-0">—</span>
+                      <span className="text-zinc-700 mt-[0.35rem] select-none flex-shrink-0 text-[0.5rem]">●</span>
                       <span className="font-crimson-text text-lg text-zinc-400 leading-snug">
                         <a
                           href="https://online.fliphtml5.com/pgovq/jxpw/"
@@ -471,13 +498,13 @@ export default function Portfolio() {
                         >
                           Neural Network-Enhanced Inventory Forecasting for DDMRP
                         </a>{" "}
-                        — Submitted to NeurIPS
+                        submitted to NeurIPS
                       </span>
                     </li>
                     <li className="flex items-start gap-4">
-                      <span className="text-zinc-700 mt-1 select-none flex-shrink-0">—</span>
+                      <span className="text-zinc-700 mt-[0.35rem] select-none flex-shrink-0 text-[0.5rem]">●</span>
                       <span className="font-crimson-text text-lg text-zinc-400 leading-snug">
-                        Oral Presenter @ SCWRC '25 — Watershed Modeling via QSWAT
+                        Oral Presenter at SCWRC &rsquo;25, Watershed Modeling via QSWAT
                       </span>
                     </li>
                   </ul>
@@ -499,11 +526,11 @@ export default function Portfolio() {
                     <div className="space-y-3">
                       <div>
                         <p className="font-inter text-sm text-zinc-300">University of North Georgia</p>
-                        <p className="font-inter text-xs text-zinc-700">Undergraduate — Present</p>
+                        <p className="font-inter text-xs text-zinc-700">Undergraduate, Present</p>
                       </div>
                       <div>
                         <p className="font-inter text-sm text-zinc-300">Georgia State University Perimeter</p>
-                        <p className="font-inter text-xs text-zinc-700">May – Jul 2024</p>
+                        <p className="font-inter text-xs text-zinc-700">May to Jul 2024</p>
                       </div>
                       <div>
                         <p className="font-inter text-sm text-zinc-300">South Forsyth High School</p>
@@ -517,7 +544,6 @@ export default function Portfolio() {
                     <div className="space-y-2">
                       <a href="mailto:aarushkute8@gmail.com" className="block font-inter text-sm text-zinc-500 hover:text-white transition-colors">aarushkute8@gmail.com</a>
                       <a href="https://www.linkedin.com/in/aarush-kute-1639a525b/" className="block font-inter text-sm text-zinc-500 hover:text-white transition-colors">LinkedIn ↗</a>
-                      <a href="https://portfolio-v2f-two.vercel.app/" className="block font-inter text-sm text-zinc-500 hover:text-white transition-colors">Personal Website ↗</a>
                     </div>
                   </div>
                 </div>
@@ -527,7 +553,7 @@ export default function Portfolio() {
             {/* Footer */}
             <footer className="px-8 py-10 max-w-7xl mx-auto border-t border-zinc-800/50">
               <p className="font-inter text-xs text-zinc-700 tracking-wide">
-                © 2026 Aarush Kute — Cumming, Georgia
+                © 2026 Aarush Kute, Cumming, Georgia
               </p>
             </footer>
           </>
@@ -640,9 +666,15 @@ export default function Portfolio() {
       />
 
       {renderContent()}
-      
+
       {/* Experience Modal */}
       <ExperienceModal />
+
+      {/* Photo Panel (globe marker click) */}
+      <PhotoPanel
+        location={selectedLocation}
+        onClose={() => setSelectedLocation(null)}
+      />
     </main>
   )
 }
