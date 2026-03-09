@@ -169,6 +169,9 @@ export function PhotoGlobe({ onOpenLocation, panelOpen }: PhotoGlobeProps) {
   const lastPointer = useRef({ x: 0, y: 0 })
   const autoRotate = useRef(true)
   const resumeTimer = useRef(0)
+  const [zoomScale, setZoomScale] = useState(1.0)
+  const zoomScaleRef = useRef(1.0)
+  const zoomWrapperRef = useRef<HTMLDivElement>(null)
 
   // Load locations from JSON file
   useEffect(() => {
@@ -222,7 +225,7 @@ export function PhotoGlobe({ onOpenLocation, panelOpen }: PhotoGlobeProps) {
         })),
         onRender: (state) => {
           if (autoRotate.current && !isDragging.current) {
-            phiRef.current += 0.003
+            phiRef.current += 0.0015
           }
           state.phi = phiRef.current
           state.theta = thetaRef.current
@@ -252,8 +255,8 @@ export function PhotoGlobe({ onOpenLocation, panelOpen }: PhotoGlobeProps) {
     if (!isDragging.current) return
     const dx = e.clientX - lastPointer.current.x
     const dy = e.clientY - lastPointer.current.y
-    phiRef.current += dx * 0.005
-    thetaRef.current = Math.max(-1, Math.min(1, thetaRef.current - dy * 0.005))
+    phiRef.current += dx * 0.005 / zoomScaleRef.current
+    thetaRef.current = Math.max(-1, Math.min(1, thetaRef.current - dy * 0.005 / zoomScaleRef.current))
     lastPointer.current = { x: e.clientX, y: e.clientY }
   }, [])
 
@@ -263,6 +266,33 @@ export function PhotoGlobe({ onOpenLocation, panelOpen }: PhotoGlobeProps) {
     resumeTimer.current = window.setTimeout(() => { autoRotate.current = true }, 3000)
   }, [])
 
+  // Wheel zoom — must be non-passive to preventDefault
+  useEffect(() => {
+    const el = zoomWrapperRef.current
+    if (!el) return
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault()
+      const delta = e.deltaY > 0 ? -0.08 : 0.08
+      const next = Math.min(2.5, Math.max(0.6, zoomScaleRef.current + delta))
+      zoomScaleRef.current = next
+      setZoomScale(next)
+    }
+    el.addEventListener("wheel", onWheel, { passive: false })
+    return () => el.removeEventListener("wheel", onWheel)
+  }, [])
+
+  const handleZoomIn = useCallback(() => {
+    const next = Math.min(2.5, zoomScaleRef.current + 0.2)
+    zoomScaleRef.current = next
+    setZoomScale(next)
+  }, [])
+
+  const handleZoomOut = useCallback(() => {
+    const next = Math.max(0.6, zoomScaleRef.current - 0.2)
+    zoomScaleRef.current = next
+    setZoomScale(next)
+  }, [])
+
   const handleMarkerClick = useCallback(
     (loc: PhotoLocation) => onOpenLocation?.(loc),
     [onOpenLocation],
@@ -270,97 +300,131 @@ export function PhotoGlobe({ onOpenLocation, panelOpen }: PhotoGlobeProps) {
 
   return (
     <div ref={containerRef} className="relative w-full flex items-center justify-center select-none">
+      {/* Fixed-layout wrapper — clips zoomed globe to a circle */}
       <div
-        className="relative rounded-full"
-        style={{
-          width: globeSize,
-          height: globeSize,
-          boxShadow: "0 0 0 1px rgba(255,255,255,0.04), 0 0 60px 4px rgba(255,255,255,0.03)",
-        }}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerLeave={onPointerUp}
+        ref={zoomWrapperRef}
+        className="relative"
+        style={{ width: globeSize, height: globeSize }}
       >
-        <canvas
-          ref={canvasRef}
-          className="rounded-full"
-          style={{ width: globeSize, height: globeSize, cursor: "grab", display: "block" }}
-        />
-
-        {/* Edge vignette */}
+        {/* Scaled globe (canvas + vignette) — overflow-hidden gives circular crop when zoomed */}
         <div
-          className="absolute inset-0 rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle at 50% 50%, transparent 72%, rgba(0,0,0,0.55) 100%)" }}
-        />
+          className="absolute inset-0 rounded-full overflow-hidden"
+          style={{
+            transform: `scale(${zoomScale})`,
+            transformOrigin: "center center",
+            boxShadow: "0 0 0 1px rgba(255,255,255,0.04), 0 0 60px 4px rgba(255,255,255,0.03)",
+          }}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerLeave={onPointerUp}
+        >
+          <canvas
+            ref={canvasRef}
+            className="rounded-full"
+            style={{ width: globeSize, height: globeSize, cursor: "grab", display: "block" }}
+          />
+          {/* Edge vignette */}
+          <div
+            className="absolute inset-0 rounded-full pointer-events-none"
+            style={{ background: "radial-gradient(circle at 50% 50%, transparent 72%, rgba(0,0,0,0.55) 100%)" }}
+          />
+        </div>
 
-        {/* Marker + card-fan overlays — hidden when photo panel is open */}
-        {!panelOpen && markerPositions
-          .filter((m) => m.visible)
-          .map((m) => {
-            const opacity = Math.max(0.3, Math.min(1, (m.depth - 0.05) / 0.6))
-            const showFan = m.depth > FAN_THRESHOLD && m.loc.photos.length > 0
-            const dotSize = 8 + Math.min(m.loc.photos.length, 8) * 0.5
+        {/* Marker + card-fan overlays — positioned at zoom-adjusted screen coords so cards stay fixed size */}
+        {!panelOpen && (
+          <div className="absolute inset-0 pointer-events-none">
+            {markerPositions
+              .filter((m) => m.visible)
+              .map((m) => {
+                const opacity = Math.max(0.3, Math.min(1, (m.depth - 0.05) / 0.6))
+                const showFan = m.depth > FAN_THRESHOLD && m.loc.photos.length > 0
+                const dotSize = 8 + Math.min(m.loc.photos.length, 8) * 0.5
+                // Adjust marker position to match the CSS-scaled globe
+                const vx = globeSize / 2 + (m.x - globeSize / 2) * zoomScale
+                const vy = globeSize / 2 + (m.y - globeSize / 2) * zoomScale
+                // Hide markers that zoomed outside the circle
+                const r = globeSize / 2
+                const dx = vx - r, dy = vy - r
+                if (dx * dx + dy * dy > r * r * 1.1) return null
 
-            return (
-              <div
-                key={m.loc.id}
-                className="absolute pointer-events-none"
-                style={{
-                  left: m.x,
-                  top: m.y,
-                  transform: "translate(-50%, -50%)",
-                  zIndex: showFan ? 200 : Math.round(m.depth * 100),
-                }}
-              >
-                {/* Card fan (arched deck of photos) */}
-                {showFan && (
-                  <CardFan
-                    photos={m.loc.photos}
-                    depth={m.depth}
-                    name={m.loc.name}
-                    onClick={() => handleMarkerClick(m.loc)}
-                  />
-                )}
-
-                {/* Pin dot */}
-                <button
-                  className="relative flex items-center justify-center focus:outline-none pointer-events-auto"
-                  style={{ width: 28, height: 28 }}
-                  onClick={() => handleMarkerClick(m.loc)}
-                >
-                  <span
-                    className="block rounded-full bg-white transition-all duration-150"
+                return (
+                  <div
+                    key={m.loc.id}
+                    className="absolute pointer-events-none"
                     style={{
-                      width: dotSize,
-                      height: dotSize,
-                      opacity,
-                      boxShadow: "0 0 6px 2px rgba(255,255,255,0.25)",
+                      left: vx,
+                      top: vy,
+                      transform: "translate(-50%, -50%)",
+                      zIndex: showFan ? 200 : Math.round(m.depth * 100),
                     }}
-                  />
-                </button>
-              </div>
-            )
-          })}
-      </div>
+                  >
+                    {/* Card fan — fixed pixel size regardless of zoom */}
+                    {showFan && (
+                      <CardFan
+                        photos={m.loc.photos}
+                        depth={m.depth}
+                        name={m.loc.name}
+                        onClick={() => handleMarkerClick(m.loc)}
+                      />
+                    )}
 
-      {/* Empty state */}
-      {locations.length === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="text-center">
-            <p className="font-inter text-xs text-zinc-600 mb-1">No locations yet</p>
-            <p className="font-inter text-[10px] text-zinc-700">Add photos with locations to see them here</p>
+                    {/* Pin dot */}
+                    <button
+                      className="relative flex items-center justify-center focus:outline-none pointer-events-auto"
+                      style={{ width: 28, height: 28 }}
+                      onClick={() => handleMarkerClick(m.loc)}
+                    >
+                      <span
+                        className="block rounded-full bg-white transition-all duration-150"
+                        style={{
+                          width: dotSize,
+                          height: dotSize,
+                          opacity,
+                          boxShadow: "0 0 6px 2px rgba(255,255,255,0.25)",
+                        }}
+                      />
+                    </button>
+                  </div>
+                )
+              })}
           </div>
-        </div>
-      )}
+        )}
 
-      {locations.length > 0 && (
-        <div className="absolute bottom-2 right-2 pointer-events-none">
-          <span className="font-inter text-[10px] text-white/20 tabular-nums">
-            {locations.length} location{locations.length !== 1 ? "s" : ""}
-          </span>
+        {/* Zoom controls */}
+        <div className="absolute bottom-3 right-3 flex flex-col gap-1 z-10 pointer-events-auto">
+          <button
+            onClick={handleZoomIn}
+            className="w-7 h-7 bg-zinc-900/80 border border-zinc-700 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white hover:border-zinc-500 transition-colors text-base leading-none"
+          >
+            +
+          </button>
+          <button
+            onClick={handleZoomOut}
+            className="w-7 h-7 bg-zinc-900/80 border border-zinc-700 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white hover:border-zinc-500 transition-colors text-base leading-none"
+          >
+            −
+          </button>
         </div>
-      )}
+
+        {/* Empty state */}
+        {locations.length === 0 && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="text-center">
+              <p className="font-inter text-xs text-zinc-600 mb-1">No locations yet</p>
+              <p className="font-inter text-[10px] text-zinc-700">Add photos with locations to see them here</p>
+            </div>
+          </div>
+        )}
+
+        {locations.length > 0 && (
+          <div className="absolute bottom-3 left-3 pointer-events-none">
+            <span className="font-inter text-[10px] text-white/20 tabular-nums">
+              {locations.length} location{locations.length !== 1 ? "s" : ""}
+            </span>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
