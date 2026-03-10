@@ -6,32 +6,53 @@ import { useState, useEffect } from "react"
 
 const PROJECTS = [
   {
-    title: "Evion ML Platform",
+    title: "asdsl-framework",
     description:
-      "End-to-end agricultural ML infrastructure serving 500+ Maryland farms. NDVI deep learning models trained on 30,000+ satellite and drone images reach 95% peak validation accuracy.",
-    tags: ["PyTorch", "Computer Vision", "Python", "Satellite Imagery"],
-    href: "#",
+      "CPU-optimized LLM inference engine for running Phi-4 (14B parameters) on Apple Silicon without a GPU. Achieves 47% RAM reduction (9.2 → 4.9 GB) via 3/4/8-bit quantization, a custom LUT matmul kernel, SWIFT speculative decoding, and block-sparse KV cache.",
+    tags: ["Python", "LLM Inference", "Quantization", "Apple Silicon"],
+    href: "https://github.com/aarushk09/asdsl-framework",
+  },
+  {
+    title: "edpearOS",
+    description:
+      "Custom Arch Linux distribution built for academic productivity. Ships KDE Plasma and Hyprland dual desktop environments, Focus Mode (notification blocking, website filtering, blue-light filter), a Calamares-based Student Setup installer, and pre-bundled Obsidian, Zotero, VSCode, and LaTeX. ISOs are built and published automatically via GitHub Actions.",
+    tags: ["Linux", "Shell", "Python", "CI/CD", "KDE Plasma"],
+    href: "https://github.com/aarushk09/edpearOS",
+  },
+  {
+    title: "EdPear SDK",
+    description:
+      "AI-powered educational component library offering vision AI for textbook pages, handwritten notes, and diagrams. Published as @edpear/sdk and @edpear/cli on npm with a CLI login flow, API-key management, credit tracking, and a secure proxied inference backend.",
+    tags: ["TypeScript", "NPM SDK", "Vision AI", "Education"],
+    href: "https://github.com/aarushk09/edpear",
+  },
+  {
+    title: "GoFind",
+    description:
+      "AI-powered scavenger hunt platform inspired by Kahoot for real-world exploration. Hosts design hunt rooms with AI-generated clues; players join via 6-digit room codes, compete on live leaderboards, and share results via shareable links. Built with Next.js 15 and Supabase Realtime.",
+    tags: ["Next.js", "TypeScript", "Supabase", "Real-time"],
+    href: "https://github.com/aarushk09/GoFind",
   },
   {
     title: "DailySAT",
     description:
-      "Free SAT prep platform scaled to 88,000+ unique visitors and 1,000+ registered users. A viral content strategy drove 6M+ organic Instagram views with zero ad spend.",
-    tags: ["Next.js", "TypeScript", "PostgreSQL"],
-    href: "https://dailysat.vercel.app",
+      "Free, open-source SAT prep platform scaled to 88,000+ unique visitors and 1,000+ registered users. Features Google SSO, AI-generated study plans, MongoDB + Upstash Redis caching, and a rate-limited API layer. A viral content strategy drove 6M+ organic Instagram views with zero ad spend.",
+    tags: ["Next.js", "TypeScript", "MongoDB", "Redis"],
+    href: "https://dailysat.org",
   },
   {
-    title: "EdPear",
+    title: "Daemo AI Agent Suite",
     description:
-      "Open-source EdTech component library built for enterprise educational platforms. 4,000+ NPM installs, a Top 100 Product Hunt launch, and active integration interest from YC-backed startups.",
-    tags: ["TypeScript", "NPM", "Open Source"],
-    href: "https://www.npmjs.com/org/edpear",
+      "Six specialized AI agents built on the Daemo Engine SDK, each integrating a distinct external API: Gmail (smart email drafting & thread categorization), Hacker News (curated tech-news feed), Google Calendar (natural-language event scheduling with timezone parsing), Google Drive (file search, content summarization & folder organization), Google Sheets (data analysis, read/write & report generation), and Google Slides (structured-data-to-presentation builder).",
+    tags: ["TypeScript", "Daemo SDK", "Google APIs", "AI Agents"],
+    href: "https://github.com/aarushk09/Daemo-Bounty---Gmail-API",
   },
   {
-    title: "WebGenius 501(c)(3)",
+    title: "Jenkins CI/CD Pipeline",
     description:
-      "Registered non-profit providing professional web infrastructure to high school organizations globally. 5 chapters, 20+ volunteers, 100+ projects delivered, and $300K+ in secured corporate donations.",
-    tags: ["Non-Profit", "Web Development", "Operations"],
-    href: "#",
+      "Automated CI/CD pipeline configuration and testing setup using Jenkins. Demonstrates DevOps practices including build automation, multi-stage test orchestration, artifact management, and deployment workflows.",
+    tags: ["Jenkins", "CI/CD", "DevOps", "Automation"],
+    href: "https://github.com/aarushk09/jenkins_ci-cd_test",
   },
 ]
 

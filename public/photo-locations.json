@@ -71,5 +71,302 @@
         "url": "/photos/img_1755315499341_IMG_8449.jpeg"
       }
     ]
+  },
+  {
+    "id": "975088a2-781c-4927-a1a4-8d11e47ed19e",
+    "name": "Paris",
+    "type": "city",
+    "lat": 48.8566,
+    "lng": 2.3522,
+    "photos": [
+      {
+        "id": "08da760f-b0b4-4036-8075-917f0b017229",
+        "url": "/photos/img_1755315791627_IMG_7441.webp"
+      },
+      {
+        "id": "a8f07ba3-033c-4f53-8841-612b0a893a3d",
+        "url": "/photos/img_1755315789656_IMG_7448.webp"
+      },
+      {
+        "id": "9bf4f724-8923-45b2-bfe2-f38bab339845",
+        "url": "/photos/img_1755315787593_IMG_7449.webp"
+      },
+      {
+        "id": "bade0f13-5530-4376-bfb5-710d87be52ea",
+        "url": "/photos/img_1755315786056_IMG_7455.webp"
+      },
+      {
+        "id": "8fadf945-2a2c-4e69-9110-8402149b011a",
+        "url": "/photos/img_1755315784350_IMG_7457.webp"
+      },
+      {
+        "id": "6e274362-2120-4a2b-8181-369f17633ca2",
+        "url": "/photos/img_1755315781756_IMG_7469.webp"
+      },
+      {
+        "id": "1ccd62cb-ce0e-4e61-8ee0-e3f74b051a1f",
+        "url": "/photos/img_1755315777984_IMG_7483.webp"
+      },
+      {
+        "id": "212d069b-8f76-40c2-b35e-9d96431729d1",
+        "url": "/photos/img_1755315767312_IMG_7516.webp"
+      },
+      {
+        "id": "055ed7d1-f140-475a-a931-16dc4dab0ae2",
+        "url": "/photos/img_1755315764881_IMG_7517.webp"
+      },
+      {
+        "id": "64ff7e5c-2cac-4849-975e-6ae3145332db",
+        "url": "/photos/img_1755315757936_IMG_7526.webp"
+      },
+      {
+        "id": "3d4ec143-4895-4619-8dce-8c271d033187",
+        "url": "/photos/img_1755315753579_IMG_7530.webp"
+      },
+      {
+        "id": "8a1b63cc-ac1c-46b7-8626-10f668141f9a",
+        "url": "/photos/img_1755315748738_IMG_7535.webp"
+      },
+      {
+        "id": "0f8e8009-d11f-4614-81e9-1458824efac8",
+        "url": "/photos/img_1755315746244_IMG_7539.webp"
+      },
+      {
+        "id": "ee7cb9fc-5c6b-4d0e-b2f8-807adaedd4f6",
+        "url": "/photos/img_1755315744729_FULLSIZERENDER.webp"
+      }
+    ]
+  },
+  {
+    "id": "2086e36d-2e4d-4c5c-ac96-8ae3def8047f",
+    "name": "Rome",
+    "type": "city",
+    "lat": 41.9028,
+    "lng": 12.4964,
+    "photos": [
+      {
+        "id": "27abaa7d-e94d-4eec-9a50-bd691bd48a86",
+        "url": "/photos/img_1755315606009_IMG_7948.webp"
+      },
+      {
+        "id": "7ef0a110-acac-4c8b-9612-962bfe1c029c",
+        "url": "/photos/img_1755315598903_IMG_7967.webp"
+      },
+      {
+        "id": "91dd2e3c-483c-4ac1-8bec-5aba7715ecff",
+        "url": "/photos/img_1755315597887_IMG_7972.webp"
+      },
+      {
+        "id": "62c069a7-c366-4e6d-8eab-54169cd3d12a",
+        "url": "/photos/img_1755315595323_IMG_7976.webp"
+      },
+      {
+        "id": "cd05dcdf-391e-4ec6-ad02-bedc1e08b5a3",
+        "url": "/photos/img_1755315592779_IMG_7979.webp"
+      },
+      {
+        "id": "01de2746-b936-4cfd-a696-98c869a72ac9",
+        "url": "/photos/img_1755315590711_IMG_7988.webp"
+      },
+      {
+        "id": "cbdc6249-7eed-4020-92f3-8452bfa37154",
+        "url": "/photos/img_1755315587663_IMG_8008.webp"
+      },
+      {
+        "id": "9b29a738-4f30-4bb5-aede-f00056328819",
+        "url": "/photos/img_1755315583752_IMG_8022.webp"
+      },
+      {
+        "id": "6042eb99-6183-4d20-96b0-beb8a30d5daa",
+        "url": "/photos/img_1755315582393_IMG_8032.webp"
+      },
+      {
+        "id": "c0962dd0-533c-494d-b165-5a3c929f78dc",
+        "url": "/photos/img_1755315580258_IMG_8048.webp"
+      },
+      {
+        "id": "6f79a5c9-2cc2-426e-be67-b013da9ffc7b",
+        "url": "/photos/img_1755315575225_IMG_8070.webp"
+      },
+      {
+        "id": "c69d14bb-653e-4f7e-a21e-563fb74bdf5d",
+        "url": "/photos/img_1755315568410_IMG_8084.webp"
+      }
+    ]
+  },
+  {
+    "id": "2b18caca-6350-4d1d-a118-8299a11aa515",
+    "name": "Germany",
+    "type": "country",
+    "lat": 51.1657,
+    "lng": 10.4515,
+    "photos": [
+      {
+        "id": "2201c68a-ad8a-4e9b-97fa-2c33bd2cbb0e",
+        "url": "/photos/img_1755315804031_IMG_7399.webp"
+      },
+      {
+        "id": "d4219c46-730b-468e-b86e-33d74d3c4d45",
+        "url": "/photos/img_1755315795620_IMG_7417.webp"
+      },
+      {
+        "id": "bca552c0-e6be-4bb6-8919-c1863936ba6f",
+        "url": "/photos/img_1755315613332_IMG_7931.webp"
+      }
+    ]
+  },
+  {
+    "id": "f269e7d9-e4e9-47b7-b273-d3a9910cbab4",
+    "name": "Interlaken",
+    "type": "city",
+    "lat": 46.6863,
+    "lng": 7.8632,
+    "photos": [
+      {
+        "id": "740bb07c-ea8b-44e0-9452-a8045218573a",
+        "url": "/photos/img_1755315740766_IMG_7568.webp"
+      },
+      {
+        "id": "6deb4d76-f25e-45ed-b070-b6fbce6a67f4",
+        "url": "/photos/img_1755315733102_IMG_7599.webp"
+      },
+      {
+        "id": "9997d798-c8c1-40b7-8fd5-3c8fecec9ce2",
+        "url": "/photos/img_1755315727363_IMG_7610.webp"
+      },
+      {
+        "id": "04e47a82-2b41-4e76-ae0e-c82fc711a1cd",
+        "url": "/photos/img_1755315717853_IMG_7628.webp"
+      },
+      {
+        "id": "bd8a1190-42b7-4f80-93a3-4c7236d35bfc",
+        "url": "/photos/img_1755315715541_IMG_7629.webp"
+      },
+      {
+        "id": "826ccc92-ad27-449f-8c2a-6edecb567a59",
+        "url": "/photos/img_1755315710663_IMG_7631.webp"
+      },
+      {
+        "id": "d2da9c6c-89bd-4d01-8713-87ca6afa14ad",
+        "url": "/photos/img_1755315708495_IMG_7633.webp"
+      },
+      {
+        "id": "92c0438a-0e35-4352-a48c-b875b8720a0c",
+        "url": "/photos/img_1755315695631_IMG_7657.webp"
+      },
+      {
+        "id": "8b9e6c37-0106-43d1-8c89-11134b9eda3b",
+        "url": "/photos/img_1755315693234_IMG_7658.webp"
+      },
+      {
+        "id": "ab54303f-824a-44fa-b026-2b86988f88e5",
+        "url": "/photos/img_1755315673019_IMG_7727.webp"
+      },
+      {
+        "id": "141d20ea-ad6b-4576-a807-ebd4a8471148",
+        "url": "/photos/img_1755315662469_IMG_7778.webp"
+      },
+      {
+        "id": "825fdc0b-f8df-4dbe-a378-f0a7d76b765b",
+        "url": "/photos/img_1755315660304_IMG_7784.webp"
+      },
+      {
+        "id": "9cfae929-7360-4bf7-a33b-a6eb091c6b8c",
+        "url": "/photos/img_1755315658277_IMG_7790.webp"
+      },
+      {
+        "id": "135af066-fc17-4ed9-a334-55062b210aa7",
+        "url": "/photos/img_1755315656037_IMG_7804.webp"
+      },
+      {
+        "id": "7933a067-e33f-4b37-ab02-8819160c1d82",
+        "url": "/photos/img_1755315651507_IMG_7809.webp"
+      },
+      {
+        "id": "5efa780b-a0c8-465f-a997-f32b3cd9e694",
+        "url": "/photos/img_1755315647268_IMG_7816.webp"
+      },
+      {
+        "id": "48dd8c47-f674-4ce7-97dc-32b2ac6a31bc",
+        "url": "/photos/img_1755315637236_IMG_7843.webp"
+      },
+      {
+        "id": "2de8333f-994d-4cbf-b23d-92ac8e7ee837",
+        "url": "/photos/img_1755315635288_IMG_7847.webp"
+      },
+      {
+        "id": "edf221be-4d4d-4f85-ad76-faf84e1388f7",
+        "url": "/photos/img_1755315625081_IMG_7907.webp"
+      },
+      {
+        "id": "a97815b3-4524-4267-9461-e350ea2da23f",
+        "url": "/photos/img_1755315622674_IMG_7909.webp"
+      },
+      {
+        "id": "69132dec-fe24-45b9-8088-e1edf31c81a7",
+        "url": "/photos/img_1755315620612_IMG_7913.webp"
+      },
+      {
+        "id": "eb5f7759-b607-4ac9-b8a9-01274dece7fc",
+        "url": "/photos/img_1755315618153_IMG_7917.webp"
+      },
+      {
+        "id": "4414f2ff-cb93-4652-bf9a-c637cccd0ce1",
+        "url": "/photos/img_1755315651507_IMG_7809.jpeg"
+      },
+      {
+        "id": "4d2bd6f2-b436-4370-b547-68869046fd03",
+        "url": "/photos/img_1755315666439_IMG_7757.jpeg"
+      }
+    ]
+  },
+  {
+    "id": "d6c24780-6222-436a-b8ec-a40c7e11e219",
+    "name": "Santorini",
+    "type": "city",
+    "lat": 36.3932,
+    "lng": 25.4615,
+    "photos": [
+      {
+        "id": "8abbf507-2513-4349-b9e4-6049c62483ef",
+        "url": "/photos/img_1755315564074_IMG_8105.webp"
+      },
+      {
+        "id": "59dffed0-6f16-4a3f-a59f-cbf7c636d326",
+        "url": "/photos/img_1755315561825_IMG_8113.webp"
+      },
+      {
+        "id": "db807d53-9aac-481e-aa40-89429fddd406",
+        "url": "/photos/img_1755315559899_IMG_8116.webp"
+      },
+      {
+        "id": "1cb7e3a6-a508-41bf-b790-eb1f62f34761",
+        "url": "/photos/img_1755315557832_IMG_8149.webp"
+      },
+      {
+        "id": "d6b1d6e8-02e9-4570-b7fb-b98fe7b7e235",
+        "url": "/photos/img_1755315555354_IMG_8153.webp"
+      },
+      {
+        "id": "3daacaf0-e8e1-4fc1-84a8-2fb7aee56f7c",
+        "url": "/photos/img_1755315564074_IMG_8105.jpeg"
+      },
+      {
+        "id": "1da8a4c1-8fc2-40fc-9bd3-300952491cec",
+        "url": "/photos/img_1755315561825_IMG_8113.jpeg"
+      },
+      {
+        "id": "b35f2660-d4d7-4a9f-b8ea-83e57409274e",
+        "url": "/photos/img_1755315557832_IMG_8149.jpeg"
+      },
+      {
+        "id": "5dbb885e-dd91-4613-8579-88222eb6400f",
+        "url": "/photos/img_1755315555354_IMG_8153.jpeg"
+      },
+      {
+        "id": "fbf16ba3-30e9-47f9-9311-66168878b3a0",
+        "url": "/photos/img_1755315553424_IMG_8169.jpeg"
+      }
+    ]
   }
 ]
