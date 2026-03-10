@@ -508,8 +508,8 @@ export function PhotoGlobe({ onOpenLocation, panelOpen }: PhotoGlobeProps) {
             {expandedPoints.map((ep) => {
               const isHov = hoveredExpandedId === ep.loc.id
               const dotOpacity = isHov ? 1 : Math.max(0.5, Math.min(1, (ep.depth - 0.05) / 0.6))
-              // Fan cards: semi-transparent by default, nearly invisible on hover so dot stands out
-              const fanOpacity = isHov ? 0.07 : 0.28
+              // Fan cards: dim by default so all dots are visible; brighten on hover to show detail
+              const fanOpacity = isHov ? 0.92 : 0.22
               const dotSize = (5 + Math.min(ep.loc.photos.length, 8) * 0.4) * zoomScale
               const showFan = ep.loc.photos.length > 0 && ep.depth > 0.05
 
