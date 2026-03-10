@@ -1,6 +1,6 @@
 ﻿"use client"
 
-import { useRef, useEffect, useState, useCallback } from "react"
+import { useRef, useEffect, useState, useCallback, useMemo } from "react"
 import Image from "next/image"
 import type { PhotoLocation } from "@/lib/photo-locations"
 import { fetchLocations, getLocations } from "@/lib/photo-locations"
@@ -70,10 +70,12 @@ interface CardFanProps {
   depth: number
   name: string
   onClick: () => void
+  fanOpacity?: number
+  depthThreshold?: number
 }
 
-function CardFan({ photos, depth, name, onClick }: CardFanProps) {
-  const t = Math.min(1, (depth - FAN_THRESHOLD) / (1 - FAN_THRESHOLD))
+function CardFan({ photos, depth, name, onClick, fanOpacity = 1, depthThreshold = FAN_THRESHOLD }: CardFanProps) {
+  const t = Math.min(1, Math.max(0, (depth - depthThreshold) / (1 - depthThreshold)))
   const cards = photos.slice(0, 4)
 
   return (
@@ -84,8 +86,9 @@ function CardFan({ photos, depth, name, onClick }: CardFanProps) {
         left: "50%",
         transform: "translateX(-50%)",
         marginBottom: 8,
-        opacity: t,
-        transition: "opacity 0.25s ease-out",
+        opacity: t * fanOpacity,
+        transition: "opacity 0.2s ease-out",
+        pointerEvents: fanOpacity < 0.5 ? "none" : "auto",
       }}
     >
       {/* Card stack */}
@@ -172,6 +175,47 @@ export function PhotoGlobe({ onOpenLocation, panelOpen }: PhotoGlobeProps) {
   const [zoomScale, setZoomScale] = useState(1.0)
   const zoomScaleRef = useRef(1.0)
   const zoomWrapperRef = useRef<HTMLDivElement>(null)
+  const [expandedCluster, setExpandedCluster] = useState<Set<string> | null>(null)
+  const [hoveredCluster, setHoveredCluster] = useState<number | null>(null)
+  const [hoveredExpandedId, setHoveredExpandedId] = useState<string | null>(null)
+  // Animation refs for smooth globe rotation + zoom on cluster expand
+  const animatingRef = useRef(false)
+  const targetPhiRef = useRef(0)
+  const targetThetaRef = useRef(0.3)
+  const targetZoomRef = useRef(1.0)
+
+  // Screen-space clustering — expanded-cluster members render individually; rest cluster normally
+  const { clusters, expandedPoints } = useMemo(() => {
+    const CLUSTER_PX = 40
+    const clusters: { locs: PhotoLocation[]; vx: number; vy: number; depth: number }[] = []
+    const expandedPoints: { loc: PhotoLocation; vx: number; vy: number; depth: number }[] = []
+    for (const m of markerPositions) {
+      if (!m.visible) continue
+      const vx = globeSize / 2 + (m.x - globeSize / 2) * zoomScale
+      const vy = globeSize / 2 + (m.y - globeSize / 2) * zoomScale
+      const r = globeSize / 2
+      if ((vx - r) ** 2 + (vy - r) ** 2 > r * r * 1.1) continue
+      // Expanded-cluster members skip clustering and render individually
+      if (expandedCluster?.has(m.loc.id)) {
+        expandedPoints.push({ loc: m.loc, vx, vy, depth: m.depth })
+        continue
+      }
+      let merged = false
+      for (const c of clusters) {
+        if ((c.vx - vx) ** 2 + (c.vy - vy) ** 2 < CLUSTER_PX * CLUSTER_PX) {
+          c.locs.push(m.loc)
+          const n = c.locs.length
+          c.vx = (c.vx * (n - 1) + vx) / n
+          c.vy = (c.vy * (n - 1) + vy) / n
+          c.depth = Math.max(c.depth, m.depth)
+          merged = true
+          break
+        }
+      }
+      if (!merged) clusters.push({ locs: [m.loc], vx, vy, depth: m.depth })
+    }
+    return { clusters, expandedPoints }
+  }, [markerPositions, zoomScale, globeSize, expandedCluster])
 
   // Load locations from JSON file
   useEffect(() => {
@@ -226,12 +270,23 @@ export function PhotoGlobe({ onOpenLocation, panelOpen }: PhotoGlobeProps) {
         baseColor: [0.25, 0.25, 0.25],
         markerColor: [0.9, 0.9, 0.9],
         glowColor: [0.08, 0.08, 0.08],
-        markers: locations.map((loc) => ({
-          location: [loc.lat, loc.lng] as [number, number],
-          size: 0.06 + Math.min(loc.photos.length, 10) * 0.008,
-        })),
+        markers: [],
+        // overlay dots outside the CSS-transform div handle marker rendering so they scale correctly with zoom
         onRender: (state) => {
-          if (autoRotate.current && !isDragging.current) {
+          if (animatingRef.current) {
+            const dphi   = targetPhiRef.current   - phiRef.current
+            const dtheta = targetThetaRef.current  - thetaRef.current
+            const dzoom  = targetZoomRef.current   - zoomScaleRef.current
+            phiRef.current   += dphi   * 0.07
+            thetaRef.current += dtheta * 0.07
+            if (Math.abs(dzoom) > 0.003) {
+              zoomScaleRef.current += dzoom * 0.07
+              setZoomScale(zoomScaleRef.current)
+            }
+            if (Math.abs(dphi) < 0.003 && Math.abs(dtheta) < 0.002 && Math.abs(dzoom) < 0.003) {
+              animatingRef.current = false
+            }
+          } else if (autoRotate.current && !isDragging.current) {
             phiRef.current += 0.0015
           }
           state.phi = phiRef.current
@@ -255,7 +310,9 @@ export function PhotoGlobe({ onOpenLocation, panelOpen }: PhotoGlobeProps) {
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     isDragging.current = true
     autoRotate.current = false
+    animatingRef.current = false
     lastPointer.current = { x: e.clientX, y: e.clientY }
+    setHoveredCluster(null)
   }, [])
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
@@ -305,6 +362,38 @@ export function PhotoGlobe({ onOpenLocation, panelOpen }: PhotoGlobeProps) {
     [onOpenLocation],
   )
 
+  // Expand a multi-location cluster: zoom + rotate globe to geographic center, show individual markers
+  const handleExpandCluster = useCallback(
+    (c: { locs: PhotoLocation[]; vx: number; vy: number; depth: number }) => {
+      if (c.locs.length === 1) { handleMarkerClick(c.locs[0]); return }
+      const avgLat = c.locs.reduce((s, l) => s + l.lat, 0) / c.locs.length
+      const avgLng = c.locs.reduce((s, l) => s + l.lng, 0) / c.locs.length
+      // Compute phi that faces this longitude (lz maximised when lngR + phi = π/2)
+      const lngR = avgLng * Math.PI / 180 - Math.PI
+      let phiTarget = Math.PI / 2 - lngR
+      // Normalize to shortest rotation from current phi
+      const twoPi = 2 * Math.PI
+      const delta = ((phiTarget - ((phiRef.current % twoPi) + twoPi)) % twoPi)
+      phiTarget = phiRef.current + (delta > Math.PI ? delta - twoPi : delta < -Math.PI ? delta + twoPi : delta)
+      const thetaTarget = Math.max(-1, Math.min(1, avgLat * Math.PI / 180))
+      targetPhiRef.current   = phiTarget
+      targetThetaRef.current = thetaTarget
+      targetZoomRef.current  = Math.min(2.5, Math.max(zoomScaleRef.current + 0.7, 1.8))
+      animatingRef.current   = true
+      autoRotate.current     = false
+      setExpandedCluster(new Set(c.locs.map((l) => l.id)))
+      setHoveredCluster(null)
+    },
+    [handleMarkerClick],
+  )
+
+  // Escape key collapses the expanded cluster
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setExpandedCluster(null) }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [])
+
   return (
     <div ref={containerRef} className="relative w-full h-full flex items-center justify-center select-none">
       {/* Fixed-layout wrapper — clips zoomed globe to a circle */}
@@ -338,63 +427,137 @@ export function PhotoGlobe({ onOpenLocation, panelOpen }: PhotoGlobeProps) {
           />
         </div>
 
-        {/* Marker + card-fan overlays — positioned at zoom-adjusted screen coords so cards stay fixed size */}
+        {/* Cluster markers */}
         {!panelOpen && (
           <div className="absolute inset-0 pointer-events-none">
-            {markerPositions
-              .filter((m) => m.visible)
-              .map((m) => {
-                const opacity = Math.max(0.3, Math.min(1, (m.depth - 0.05) / 0.6))
-                const showFan = m.depth > FAN_THRESHOLD && m.loc.photos.length > 0
-                const dotSize = (8 + Math.min(m.loc.photos.length, 8) * 0.5) * zoomScale
-                // Adjust marker position to match the CSS-scaled globe
-                const vx = globeSize / 2 + (m.x - globeSize / 2) * zoomScale
-                const vy = globeSize / 2 + (m.y - globeSize / 2) * zoomScale
-                // Hide markers that zoomed outside the circle
-                const r = globeSize / 2
-                const dx = vx - r, dy = vy - r
-                if (dx * dx + dy * dy > r * r * 1.1) return null
+            {clusters.map((c, i) => {
+              const isMulti = c.locs.length > 1
+              const opacity = Math.max(0.3, Math.min(1, (c.depth - 0.05) / 0.6))
+              const mainLoc = c.locs.reduce((a, b) => (a.photos.length >= b.photos.length ? a : b))
+              const isHovered = hoveredCluster === i
+              // Single: show fan on hover. Multi: show fan preview of richest loc on hover
+              const showFan = isHovered && c.depth > FAN_THRESHOLD && mainLoc.photos.length > 0
+              const dotSize = (5 + Math.min(mainLoc.photos.length, 8) * 0.4) * zoomScale
 
-                return (
-                  <div
-                    key={m.loc.id}
-                    className="absolute pointer-events-none"
-                    style={{
-                      left: vx,
-                      top: vy,
-                      transform: "translate(-50%, -50%)",
-                      zIndex: showFan ? 200 : Math.round(m.depth * 100),
-                    }}
+              return (
+                <div
+                  key={i}
+                  className="absolute pointer-events-none"
+                  style={{
+                    left: c.vx,
+                    top: c.vy,
+                    transform: "translate(-50%, -50%)",
+                    zIndex: isHovered ? 200 : Math.round(c.depth * 100),
+                  }}
+                  onMouseEnter={() => setHoveredCluster(i)}
+                  onMouseLeave={() => setHoveredCluster(null)}
+                >
+                  {/* Card fan preview on hover */}
+                  {showFan && (
+                    <CardFan
+                      photos={mainLoc.photos}
+                      depth={c.depth}
+                      name={isMulti ? `${mainLoc.name} +${c.locs.length - 1} more` : mainLoc.name}
+                      onClick={() => isMulti ? handleExpandCluster(c) : handleMarkerClick(c.locs[0])}
+                    />
+                  )}
+
+                  {/* Pin dot */}
+                  <button
+                    className="relative flex items-center justify-center focus:outline-none pointer-events-auto"
+                    style={{ width: Math.max(28, dotSize + 10), height: Math.max(28, dotSize + 10) }}
+                    onClick={() => isMulti ? handleExpandCluster(c) : handleMarkerClick(c.locs[0])}
                   >
-                    {/* Card fan — fixed pixel size regardless of zoom */}
-                    {showFan && (
-                      <CardFan
-                        photos={m.loc.photos}
-                        depth={m.depth}
-                        name={m.loc.name}
-                        onClick={() => handleMarkerClick(m.loc)}
-                      />
-                    )}
-
-                    {/* Pin dot */}
-                    <button
-                      className="relative flex items-center justify-center focus:outline-none pointer-events-auto"
-                      style={{ width: Math.max(28, dotSize + 10), height: Math.max(28, dotSize + 10) }}
-                      onClick={() => handleMarkerClick(m.loc)}
-                    >
+                    <span
+                      className="block rounded-full bg-white transition-all duration-150"
+                      style={{
+                        width: dotSize,
+                        height: dotSize,
+                        opacity,
+                        boxShadow: "0 0 6px 2px rgba(255,255,255,0.25)",
+                      }}
+                    />
+                    {/* Cluster count badge */}
+                    {isMulti && (
                       <span
-                        className="block rounded-full bg-white transition-all duration-150"
-                        style={{
-                          width: dotSize,
-                          height: dotSize,
-                          opacity,
-                          boxShadow: "0 0 6px 2px rgba(255,255,255,0.25)",
-                        }}
-                      />
-                    </button>
-                  </div>
-                )
-              })}
+                        className="absolute -top-1 -right-1 bg-zinc-900 border border-zinc-600 text-white rounded-full flex items-center justify-center font-inter font-semibold pointer-events-none"
+                        style={{ fontSize: 9, width: 15, height: 15, lineHeight: 1 }}
+                      >
+                        {c.locs.length}
+                      </span>
+                    )}
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Expanded cluster — individual markers with low-opacity fans; hover fades fan so dot pops */}
+        {!panelOpen && expandedPoints.length > 0 && (
+          <div className="absolute inset-0 pointer-events-none">
+            {/* Collapse hint */}
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[300] pointer-events-auto">
+              <button
+                className="font-inter text-[10px] text-zinc-500 hover:text-zinc-300 bg-zinc-950/80 border border-zinc-800 px-2.5 py-1 rounded-full transition-colors"
+                onClick={() => setExpandedCluster(null)}
+              >
+                ← collapse group
+              </button>
+            </div>
+            {expandedPoints.map((ep) => {
+              const isHov = hoveredExpandedId === ep.loc.id
+              const dotOpacity = isHov ? 1 : Math.max(0.5, Math.min(1, (ep.depth - 0.05) / 0.6))
+              // Fan cards: semi-transparent by default, nearly invisible on hover so dot stands out
+              const fanOpacity = isHov ? 0.07 : 0.28
+              const dotSize = (5 + Math.min(ep.loc.photos.length, 8) * 0.4) * zoomScale
+              const showFan = ep.loc.photos.length > 0 && ep.depth > 0.05
+
+              return (
+                <div
+                  key={ep.loc.id}
+                  className="absolute pointer-events-none"
+                  style={{
+                    left: ep.vx,
+                    top: ep.vy,
+                    transform: "translate(-50%, -50%)",
+                    zIndex: isHov ? 250 : Math.round(ep.depth * 100),
+                    transition: "z-index 0s",
+                  }}
+                  onMouseEnter={() => setHoveredExpandedId(ep.loc.id)}
+                  onMouseLeave={() => setHoveredExpandedId(null)}
+                >
+                  {showFan && (
+                    <CardFan
+                      photos={ep.loc.photos}
+                      depth={ep.depth}
+                      name={ep.loc.name}
+                      onClick={() => handleMarkerClick(ep.loc)}
+                      fanOpacity={fanOpacity}
+                      depthThreshold={0.05}
+                    />
+                  )}
+
+                  <button
+                    className="relative flex items-center justify-center focus:outline-none pointer-events-auto"
+                    style={{ width: Math.max(28, dotSize + 10), height: Math.max(28, dotSize + 10) }}
+                    onClick={() => handleMarkerClick(ep.loc)}
+                  >
+                    <span
+                      className="block rounded-full bg-white transition-all duration-200"
+                      style={{
+                        width: isHov ? dotSize * 1.3 : dotSize,
+                        height: isHov ? dotSize * 1.3 : dotSize,
+                        opacity: dotOpacity,
+                        boxShadow: isHov
+                          ? "0 0 10px 4px rgba(255,255,255,0.5)"
+                          : "0 0 6px 2px rgba(255,255,255,0.25)",
+                      }}
+                    />
+                  </button>
+                </div>
+              )
+            })}
           </div>
         )}
 
