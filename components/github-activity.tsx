@@ -84,19 +84,26 @@ export function GitHubActivity() {
   const [visible, setVisible] = useState(false)
   const sectionRef = useRef<HTMLDivElement>(null)
 
-  // Intersection observer for fade-in
+  // Intersection observer for fade-in — must run after loading to get the real section ref
   useEffect(() => {
+    if (loading) return
     const el = sectionRef.current
     if (!el) return
+    // Already in view (e.g. short pages)
+    const rect = el.getBoundingClientRect()
+    if (rect.top < window.innerHeight) {
+      setVisible(true)
+      return
+    }
     const obs = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) setVisible(true)
       },
-      { threshold: 0.1 }
+      { threshold: 0.05 }
     )
     obs.observe(el)
     return () => obs.disconnect()
-  }, [])
+  }, [loading])
 
   useEffect(() => {
     async function fetchData() {

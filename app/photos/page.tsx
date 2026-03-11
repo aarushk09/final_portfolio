@@ -209,12 +209,6 @@ export default function PhotosPage() {
               : `${locations.length} location${locations.length !== 1 ? "s" : ""} · ${locations.reduce((s, l) => s + l.photos.length, 0)} photos total`}
           </p>
           <div className="flex items-center gap-4">
-            <a
-              href="/upload-photos"
-              className="font-inter text-xs text-zinc-600 border border-zinc-800 px-4 py-1.5 rounded-lg hover:border-zinc-600 hover:text-zinc-400 transition-colors"
-            >
-              Manage
-            </a>
             <p className="font-inter text-[11px] text-zinc-700">© 2026 Aarush Kute</p>
           </div>
         </div>
