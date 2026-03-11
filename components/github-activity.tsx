@@ -4,6 +4,16 @@ import { useState, useEffect, useRef } from "react"
 
 const GITHUB_USERNAME = "aarushk09"
 
+const PINNED_REPO: GitHubRepo = {
+  name: "mujoco-research",
+  description: "Reinforcement learning experiments and custom environments built on MuJoCo physics simulation.",
+  stargazers_count: 0,
+  language: "Python",
+  html_url: `https://github.com/${GITHUB_USERNAME}/mujoco-research`,
+  pushed_at: new Date().toISOString(),
+  fork: false,
+}
+
 interface GitHubProfile {
   name: string
   bio: string | null
@@ -116,7 +126,10 @@ export function GitHubActivity() {
         if (profileRes.ok) setProfile(await profileRes.json())
         if (reposRes.ok) {
           const data = await reposRes.json()
-          setRepos(data.filter((r: GitHubRepo) => !r.fork).slice(0, 6))
+          const fetched: GitHubRepo[] = data.filter((r: GitHubRepo) => !r.fork).slice(0, 6)
+          const hasMujoco = fetched.some((r) => r.name.toLowerCase().includes("mujoco"))
+          const merged = hasMujoco ? fetched : [...fetched, PINNED_REPO].slice(0, 6)
+          setRepos(merged)
         }
 
         // Try third-party contributions API
@@ -148,10 +161,10 @@ export function GitHubActivity() {
     fetchData()
   }, [])
 
-  // Build weekly grid from contribution data (last 20 weeks)
+  // Build weekly grid from contribution data — full 52 weeks
   const weeks = (() => {
     if (contributions.length === 0) return []
-    const recent = contributions.slice(-140)
+    const recent = contributions.slice(-364)
     const result: ContributionDay[][] = []
     let week: ContributionDay[] = []
     for (const day of recent) {
@@ -214,38 +227,40 @@ export function GitHubActivity() {
       `}</style>
 
       <p
-        className={`font-inter text-xs uppercase tracking-[0.35em] text-zinc-600 mb-10 gh-fade${visible ? " show" : ""}`}
+        className={`font-inter text-xs uppercase tracking-[0.35em] text-zinc-600 mb-8 gh-fade${visible ? " show" : ""}`}
       >
         GitHub
       </p>
 
-      <div className="grid md:grid-cols-3 gap-6">
+      {/* Profile + Heatmap row */}
+      <div className={`grid md:grid-cols-3 gap-6 mb-6 gh-fade${visible ? " show" : ""}`} style={{ transitionDelay: "80ms" }}>
         {/* Profile Card */}
         {profile && (
           <a
             href={profile.html_url}
             target="_blank"
             rel="noopener noreferrer"
-            className={`group p-6 rounded-2xl bg-white/[0.03] border border-zinc-800/60 hover:border-zinc-700/60 hover:bg-white/[0.05] transition-all duration-300 gh-fade${visible ? " show" : ""}`}
-            style={{ transitionDelay: "80ms" }}
+            className="group p-6 rounded-2xl bg-white/[0.03] border border-zinc-800/60 hover:border-zinc-700/60 hover:bg-white/[0.05] transition-all duration-300 flex flex-col justify-between"
           >
-            <div className="flex items-center gap-4 mb-5">
-              <img
-                src={profile.avatar_url}
-                alt={profile.name}
-                className="w-12 h-12 rounded-full ring-1 ring-zinc-800"
-              />
-              <div className="min-w-0">
-                <p className="font-inter text-base text-white truncate">{profile.name}</p>
-                <p className="font-inter text-xs text-zinc-600">@{GITHUB_USERNAME}</p>
+            <div>
+              <div className="flex items-center gap-4 mb-5">
+                <img
+                  src={profile.avatar_url}
+                  alt={profile.name}
+                  className="w-12 h-12 rounded-full ring-1 ring-zinc-800"
+                />
+                <div className="min-w-0">
+                  <p className="font-inter text-base text-white truncate">{profile.name}</p>
+                  <p className="font-inter text-xs text-zinc-600">@{GITHUB_USERNAME}</p>
+                </div>
               </div>
+              {profile.bio && (
+                <p className="font-crimson-text text-sm text-zinc-500 leading-relaxed mb-5 line-clamp-3">
+                  {profile.bio}
+                </p>
+              )}
             </div>
-            {profile.bio && (
-              <p className="font-crimson-text text-sm text-zinc-500 leading-relaxed mb-5 line-clamp-2">
-                {profile.bio}
-              </p>
-            )}
-            <div className="flex gap-5 text-xs font-inter">
+            <div className="flex gap-5 text-xs font-inter pt-4 border-t border-zinc-800/60">
               <span className="text-zinc-400">
                 <span className="text-white font-medium">{profile.public_repos}</span>{" "}
                 repos
@@ -254,53 +269,56 @@ export function GitHubActivity() {
                 <span className="text-white font-medium">{profile.followers}</span>{" "}
                 followers
               </span>
+              <span className="text-zinc-400">
+                <span className="text-white font-medium">{profile.following}</span>{" "}
+                following
+              </span>
             </div>
           </a>
         )}
 
-        {/* Contribution Heatmap */}
+        {/* Full-year contribution heatmap */}
         <div
-          className={`md:col-span-2 p-6 rounded-2xl bg-white/[0.03] border border-zinc-800/60 gh-fade${visible ? " show" : ""}`}
-          style={{ transitionDelay: "160ms" }}
+          className="md:col-span-2 p-6 rounded-2xl bg-white/[0.03] border border-zinc-800/60 flex flex-col"
         >
-          <div className="flex items-center justify-between mb-4">
-            <p className="font-inter text-xs text-zinc-500">
-              {totalContributions.toLocaleString()} contributions in the last year
-            </p>
-            <div className="flex items-center gap-1 text-[10px] font-inter text-zinc-600">
-              <span>Less</span>
-              {[0, 1, 2, 3, 4].map((lvl) => (
-                <div
-                  key={lvl}
-                  className={`w-2.5 h-2.5 rounded-[3px] ${levelColor(lvl)}`}
-                />
-              ))}
-              <span>More</span>
-            </div>
+        <div className="flex items-center justify-between mb-4">
+          <p className="font-inter text-xs text-zinc-500">
+            <span className="text-white font-medium">{totalContributions.toLocaleString()}</span> contributions in the last year
+          </p>
+          <div className="flex items-center gap-1.5 text-[10px] font-inter text-zinc-600">
+            <span>Less</span>
+            {[0, 1, 2, 3, 4].map((lvl) => (
+              <div
+                key={lvl}
+                className={`w-2.5 h-2.5 rounded-[3px] ${levelColor(lvl)}`}
+              />
+            ))}
+            <span>More</span>
           </div>
+        </div>
 
-          <div className="overflow-x-auto">
-            <div className="flex gap-[3px] min-w-0">
-              {weeks.map((week, wi) => (
-                <div key={wi} className="flex flex-col gap-[3px]">
-                  {week.map((day) => (
-                    <div
-                      key={day.date}
-                      className={`w-[11px] h-[11px] rounded-[2px] ${levelColor(day.level)} transition-colors duration-150 hover:ring-1 hover:ring-zinc-500`}
-                      title={`${day.date}: ${day.count} contributions`}
-                    />
-                  ))}
-                </div>
-              ))}
-            </div>
+        <div className="overflow-x-auto">
+          <div className="flex gap-[3px]" style={{ minWidth: "max-content" }}>
+            {weeks.map((week, wi) => (
+              <div key={wi} className="flex flex-col gap-[3px]">
+                {week.map((day) => (
+                  <div
+                    key={day.date}
+                    className={`w-[11px] h-[11px] rounded-[2px] ${levelColor(day.level)} transition-colors duration-150 hover:ring-1 hover:ring-zinc-500 cursor-default`}
+                    title={`${day.date}: ${day.count} contribution${day.count !== 1 ? "s" : ""}`}
+                  />
+                ))}
+              </div>
+            ))}
           </div>
+        </div>
         </div>
       </div>
 
       {/* Recent Repositories */}
       {repos.length > 0 && (
         <div
-          className={`mt-6 grid md:grid-cols-3 gap-4 gh-fade${visible ? " show" : ""}`}
+          className={`grid md:grid-cols-3 gap-4 gh-fade${visible ? " show" : ""}`}
           style={{ transitionDelay: "240ms" }}
         >
           {repos.map((repo) => (
