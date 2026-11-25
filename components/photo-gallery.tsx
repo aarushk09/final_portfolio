@@ -2,14 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from "react"
 import Image from "next/image"
-import { Loader2, X, ChevronLeft, ChevronRight } from "lucide-react"
-import type React from "react"
-
-// Type-safe icon components
-const LoaderIcon = Loader2 as React.ComponentType<{ className?: string }>
-const XIcon = X as React.ComponentType<{ className?: string }>
-const ChevronLeftIcon = ChevronLeft as React.ComponentType<{ className?: string }>
-const ChevronRightIcon = ChevronRight as React.ComponentType<{ className?: string }>
 
 interface Photo {
   id: string
@@ -67,12 +59,12 @@ function PhotoItem({ photo, index, onOpenLightbox, onDelete, deleting, isPreload
   return (
     <div
       ref={imgRef}
-      className="aspect-square bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden hover:scale-105 transition-transform duration-300 cursor-pointer group relative"
+      className="aspect-square bg-[#eceae4] border border-[#e4e1da] overflow-hidden cursor-pointer group relative"
     >
       {/* Loading skeleton - only show if not preloaded */}
       {!isLoaded && isInView && !isPreloaded && (
-        <div className="absolute inset-0 bg-gradient-to-br from-zinc-800 to-zinc-900 animate-pulse flex items-center justify-center">
-          <LoaderIcon className="w-6 h-6 text-zinc-500 animate-spin" />
+        <div className="absolute inset-0 bg-[#e7e4dc] animate-pulse flex items-center justify-center">
+          <span className="text-xs tracking-widest text-[#6b6b6b]">...</span>
         </div>
       )}
 
@@ -244,13 +236,13 @@ export function PhotoGallery({ preloadedPhotos = [], preloadedUrls = new Set() }
 
   if (loading) {
     return (
-      <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {Array.from({ length: 8 }).map((_, i) => (
           <div
             key={i}
-            className="aspect-square bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden"
+            className="aspect-[4/5] bg-[#eceae4] border border-[#e4e1da] overflow-hidden"
           >
-            <div className="w-full h-full bg-gradient-to-br from-zinc-800 to-zinc-900 animate-pulse" />
+            <div className="w-full h-full bg-[#e7e4dc] animate-pulse" />
           </div>
         ))}
       </div>
@@ -260,7 +252,7 @@ export function PhotoGallery({ preloadedPhotos = [], preloadedUrls = new Set() }
   if (photos.length === 0) {
     return (
       <div className="text-center py-20">
-        <p className="text-zinc-400 font-crimson-text text-lg mb-4">No photos uploaded yet</p>
+        <p className="text-[#4a4a4a] text-lg mb-2">No photographs yet</p>
         <p className="text-zinc-500 font-inter text-sm">Upload some photos to get started!</p>
       </div>
     )
@@ -268,7 +260,7 @@ export function PhotoGallery({ preloadedPhotos = [], preloadedUrls = new Set() }
 
   return (
     <>
-      <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {photos.map((photo, index) => (
           <PhotoItem
             key={photo.id}
@@ -288,16 +280,9 @@ export function PhotoGallery({ preloadedPhotos = [], preloadedUrls = new Set() }
           <button
             onClick={handleLoadMore}
             disabled={isLoadingMore}
-            className="px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white font-inter text-sm transition-all duration-300 disabled:opacity-50"
+            className="px-6 py-3 border border-[#111] text-sm tracking-wide disabled:opacity-50"
           >
-            {isLoadingMore ? (
-              <span className="flex items-center gap-2">
-                <LoaderIcon className="w-4 h-4 animate-spin" />
-                Loading...
-              </span>
-            ) : (
-              `Load More Photos`
-            )}
+            {isLoadingMore ? "Loading..." : "Load More Photos"}
           </button>
         </div>
       )}
@@ -309,7 +294,7 @@ export function PhotoGallery({ preloadedPhotos = [], preloadedUrls = new Set() }
             onClick={closeLightbox}
             className="absolute top-4 right-4 p-3 bg-zinc-900/80 hover:bg-zinc-800 rounded-full transition-colors z-10"
           >
-            <XIcon className="w-6 h-6 text-white" />
+            Close
           </button>
 
           {photos.length > 1 && (
@@ -318,13 +303,13 @@ export function PhotoGallery({ preloadedPhotos = [], preloadedUrls = new Set() }
                 onClick={() => navigateLightbox("prev")}
                 className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-zinc-900/80 hover:bg-zinc-800 rounded-full transition-colors z-10"
               >
-                <ChevronLeftIcon className="w-6 h-6 text-white" />
+                Prev
               </button>
               <button
                 onClick={() => navigateLightbox("next")}
                 className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-zinc-900/80 hover:bg-zinc-800 rounded-full transition-colors z-10"
               >
-                <ChevronRightIcon className="w-6 h-6 text-white" />
+                Next
               </button>
             </>
           )}

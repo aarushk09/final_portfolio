@@ -50,6 +50,46 @@ export function setLocations(locations: PhotoLocation[]) {
   cachedLocations = locations
 }
 
+export function saveLocations(locations: PhotoLocation[]) {
+  cachedLocations = locations
+}
+
+export function addLocation(input: Omit<PhotoLocation, "id" | "photos">) {
+  const location: PhotoLocation = {
+    id: `loc_${Date.now()}`,
+    ...input,
+    photos: [],
+  }
+  cachedLocations = [...(cachedLocations ?? []), location]
+  return location
+}
+
+export function removeLocation(id: string) {
+  cachedLocations = (cachedLocations ?? []).filter((location) => location.id !== id)
+}
+
+export function addPhotoToLocation(locationId: string, photo: { url: string; caption?: string; id?: string }) {
+  cachedLocations = (cachedLocations ?? []).map((location) =>
+    location.id === locationId
+      ? {
+          ...location,
+          photos: [
+            ...location.photos,
+            { id: photo.id ?? `photo_${Date.now()}`, url: photo.url, caption: photo.caption },
+          ],
+        }
+      : location,
+  )
+}
+
+export function removePhotoFromLocation(locationId: string, photoId: string) {
+  cachedLocations = (cachedLocations ?? []).map((location) =>
+    location.id === locationId
+      ? { ...location, photos: location.photos.filter((photo) => photo.id !== photoId) }
+      : location,
+  )
+}
+
 // Preset locations for quick selection
 export const PRESET_LOCATIONS: Omit<PhotoLocation, "id" | "photos">[] = [
   { name: "New York City", type: "city", lat: 40.7128, lng: -74.006 },

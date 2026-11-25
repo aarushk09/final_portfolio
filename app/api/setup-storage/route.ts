@@ -18,6 +18,13 @@ export async function POST() {
       )
     }
 
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { success: false, error: "Supabase admin client is not configured", needsManualSetup: true },
+        { status: 500 },
+      )
+    }
+
     // Check if bucket exists
     const { data: buckets, error: listError } = await supabaseAdmin.storage.listBuckets()
 

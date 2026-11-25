@@ -21,11 +21,21 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${crimsonText.variable}`}>
-      <body className="bg-zinc-950 text-zinc-100 antialiased">{children}</body>
+      <body className={`${inter.className} bg-[#f6f4ef] text-[#111] antialiased`}>{children}</body>
     </html>
   )
 }
 
 export const metadata = {
-      generator: 'v0.app'
-    };
+  title: "Aarush Kute",
+  description:
+    "Aarush Kute is a computer engineering student building production ML systems, automated data pipelines, and applied software.",
+  openGraph: {
+    title: "Aarush Kute",
+    description:
+      "Computer engineering, production ML systems, and applied software. Photographs, experience, projects, and research.",
+    url: "https://aarushk.me",
+    siteName: "Aarush Kute",
+    type: "website",
+  },
+}

@@ -36,7 +36,7 @@ async function getAccessToken(forceRefresh = false): Promise<{ access_token: str
   const env_refresh = process.env.SPOTIFY_REFRESH_TOKEN?.trim()
 
   let refresh_token: string | null = await getStoredRefreshToken()
-  if (!refresh_token) refresh_token = env_refresh
+  if (!refresh_token) refresh_token = env_refresh ?? null
 
   if (!refresh_token) {
     throw new Error("SPOTIFY_REFRESH_TOKEN is not set (and no token in KV)")
