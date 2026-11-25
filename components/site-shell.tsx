@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react"
 import { PhotoGallery } from "@/components/photo-gallery"
 import {
+  EDUCATION,
   EXPERIENCE,
+  HIGHLIGHTS,
   LINKS,
   METRICS,
   NAV,
@@ -114,7 +116,7 @@ function ProjectModal({ project, onClose }: { project: Project; onClose: () => v
   )
 }
 
-export function SiteShell({ initial = "gallery" }: { initial?: ViewId }) {
+export function SiteShell({ initial = "about" }: { initial?: ViewId }) {
   const [view, setView] = useState<ViewId>(initial)
   const [openProject, setOpenProject] = useState<Project | null>(null)
   const [openAbstract, setOpenAbstract] = useState<number | null>(null)
@@ -127,7 +129,7 @@ export function SiteShell({ initial = "gallery" }: { initial?: ViewId }) {
     <div className="min-h-screen bg-[#f6f4ef] text-[#111]">
       <header className="sticky top-0 z-40 border-b border-[#e4e1da] bg-[#f6f4ef]/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-5 py-3 md:px-8">
-          <button type="button" onClick={() => setView("gallery")} className="text-left">
+          <button type="button" onClick={() => setView("about")} className="text-left">
             <span className="block font-serif text-xl leading-none">Aarush Kute</span>
             <span className="mt-1 block text-[10px] uppercase tracking-[0.22em] text-[#6b6b6b]">
               Computer Engineering
@@ -230,16 +232,27 @@ export function SiteShell({ initial = "gallery" }: { initial?: ViewId }) {
               </div>
             </section>
 
-            <section className="grid gap-8 md:grid-cols-2">
+            <section className="grid gap-10 md:grid-cols-2">
               <div>
                 <h2 className="text-[11px] uppercase tracking-[0.24em] text-[#6b6b6b]">Education</h2>
-                <p className="mt-3 text-[15px] leading-relaxed">
-                  [UPDATE: Current University — B.S. Computer Engineering, Expected 2029]
-                </p>
+                <ul className="mt-4 space-y-4">
+                  {EDUCATION.map((school) => (
+                    <li key={school.school}>
+                      <p className="text-[15px]">{school.school}</p>
+                      <p className="text-sm text-[#6b6b6b]">{school.detail}</p>
+                    </li>
+                  ))}
+                </ul>
               </div>
               <div>
-                <h2 className="text-[11px] uppercase tracking-[0.24em] text-[#6b6b6b]">Technical highlight</h2>
-                <p className="mt-3 text-[15px] leading-relaxed">ProjectEuler+ HackerRank — #32 of 205,113</p>
+                <h2 className="text-[11px] uppercase tracking-[0.24em] text-[#6b6b6b]">Technical highlights</h2>
+                <ul className="mt-4 space-y-3">
+                  {HIGHLIGHTS.map((item) => (
+                    <li key={item} className="border-l border-[#111] pl-3 text-[15px] leading-snug">
+                      {item}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </section>
           </section>

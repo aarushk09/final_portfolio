@@ -1,10 +1,10 @@
 export type ViewId = "gallery" | "about" | "projects" | "research" | "contact"
 
 export const NAV: { id: ViewId; label: string }[] = [
-  { id: "gallery", label: "Gallery" },
   { id: "about", label: "About" },
   { id: "projects", label: "Projects" },
   { id: "research", label: "Research" },
+  { id: "gallery", label: "Gallery" },
   { id: "contact", label: "Contact" },
 ]
 
@@ -22,6 +22,14 @@ export const METRICS = [
 
 export const EXPERIENCE = [
   {
+    org: "UNG Research",
+    role: "Research Lead",
+    period: "2023–Present",
+    points: [
+      "Applied GeoAI, environmental machine learning, and watershed modeling, including an oral presentation at SCWRC.",
+    ],
+  },
+  {
     org: "DealRadar",
     role: "Founder / Builder",
     period: "2026–Present",
@@ -32,7 +40,7 @@ export const EXPERIENCE = [
   {
     org: "Excellence",
     role: "ML Intern",
-    period: "2025",
+    period: "May 2025–Jul 2025",
     points: [
       "LLM and generative AI engineering, including a text-to-video pipeline that fine-tunes models for mathematical explanation.",
     ],
@@ -56,23 +64,15 @@ export const EXPERIENCE = [
   {
     org: "DailySAT",
     role: "Founder",
-    period: "2023–Present",
+    period: "2023–2025",
     points: [
       "SAT prep platform scaled to 88K+ visitors and 6M+ organic views, with AI study plans and a cached, rate-limited API.",
-    ],
-  },
-  {
-    org: "UNG Research",
-    role: "Research Lead",
-    period: "2023–Present",
-    points: [
-      "Applied GeoAI, environmental machine learning, and watershed modeling, including an oral presentation at SCWRC.",
     ],
   },
 ]
 
 export const STACK = [
-  { label: "Languages", items: ["Python", "TypeScript", "Go", "SQL"] },
+  { label: "Languages", items: ["Python", "TypeScript", "Go", "C", "C++", "SQL"] },
   { label: "ML & Data", items: ["PyTorch", "LLMs", "Computer Vision", "GeoAI", "Data Pipelines"] },
   { label: "Systems & Web", items: ["Next.js", "Postgres", "Distributed Scraping"] },
 ]
@@ -171,7 +171,7 @@ export const PROJECTS: Project[] = [
     summary: "Free SAT prep scaled with organic distribution, study plans, and a cached API.",
     category: "EdTech",
     role: "Founder",
-    timeframe: "2023–Present",
+    timeframe: "2023–2025",
     status: "88K+ visitors · 6M+ organic views",
     tags: ["Next.js", "TypeScript", "MongoDB", "Redis"],
     problem:
@@ -230,6 +230,21 @@ export type Paper = {
   tags: string[]
   abstract: string
 }
+
+export const EDUCATION = [
+  { school: "Kennesaw State University", detail: "Freshman, B.S. Computer Engineering" },
+  { school: "University of North Georgia", detail: "Undergraduate" },
+  { school: "Georgia State University Perimeter", detail: "May to Jul 2024" },
+  { school: "South Forsyth High School", detail: "2022" },
+]
+
+export const HIGHLIGHTS = [
+  "GASTC 8x Consecutive County and State Winner",
+  "ProjectEuler+ HackerRank, #32 of 205,113",
+  "3x Regional, 3x State Qualifier, State Design Winner, World Championship Qualifier",
+  "Piano RCM Level 8 and Level 8 Theory Certification",
+  "Presidential Volunteering Award, Gold (300 hrs)",
+]
 
 export const PAPERS: Paper[] = [
   {

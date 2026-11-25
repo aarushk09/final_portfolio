@@ -1,5 +1,5 @@
 import { SiteShell } from "@/components/site-shell"
 
 export default function HomePage() {
-  return <SiteShell initial="gallery" />
+  return <SiteShell initial="about" />
 }
